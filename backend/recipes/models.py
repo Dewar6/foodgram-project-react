@@ -159,3 +159,4 @@ class IngredientRecipe(models.Model):
         blank=False,
     )
 
+
