@@ -1,6 +1,12 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 
 from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe
+
+
+class CustomUserAdmin(UserAdmin):
+    search_fields = ('email', 'username')
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
@@ -8,12 +14,23 @@ class IngredientRecipeInline(admin.TabularInline):
     verbose_name_plural = 'Ингредиенты'
     fields = ['ingredient', 'quantity']
 
+
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [IngredientRecipeInline]
+    list_display = ('name', 'author',)
+    search_fields = ('author', 'name', 'tag',)
+    readonly_fields = ('get_favorite_count',)
+
+    def get_favorite_count(self, obj):
+        return obj.favorite_recipe.count()
+    get_favorite_count.short_description = 'Число добавлений в избранное'
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit')
+    list_display = ('name', 'measurement_unit',)
+    search_fields = ('name',)
 
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag)
 admin.site.register(Ingredient, IngredientAdmin)

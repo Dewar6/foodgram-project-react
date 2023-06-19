@@ -132,6 +132,21 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
+    def get_favorite_count(self):
+        return self.favorite_recipe.count()
+    get_favorite_count.short_description = 'Число добавлений в избранное'
+
+
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorite_recipe'
+    )
 
 class TagRecipe(models.Model):
     tag = models.ForeignKey(
