@@ -6,13 +6,10 @@ from api.validators import color_validator
 
 User = get_user_model()
 
-class MeasurementUnit(models.Model):
-    name = models.CharField(
-        max_length=10,
-        verbose_name='Единица измерения',
+class IngredientQuantity(models.Model):
+    name = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
         help_text='Выберите единицу измерения ингредиента',
-        blank=False,
-        null=False,
     )
 
     def __str__(self):
@@ -28,15 +25,19 @@ class Ingredient(models.Model):
         null=False,
         db_index=True,
     )
-    quantity = models.PositiveSmallIntegerField(
-        verbose_name= 'Количество',
-        null=False,
-        blank=False,
-    )
-    measurement_unit = models.ForeignKey(
-        MeasurementUnit,
-        on_delete=models.CASCADE,
+
+    measurement_unit = models.CharField(
+        max_length=10,
         verbose_name='Единица измерения',
+        help_text='Выберите единицу измерения ингредиента',
+        blank=False,
+        null=False,
+    )
+    quantity = models.ForeignKey(
+        IngredientQuantity,
+        on_delete=models.CASCADE,
+        verbose_name='Количество',
+        null=True,
     )
 
     def __str__(self):
@@ -105,7 +106,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name='Ингредиенты',
-        help_text='Введите список ингредиентов',
+        help_text='Выберите ингредиенты и их количество',
         through='IngredientRecipe',
         blank=False,
         null=False,
@@ -114,7 +115,7 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэг',
         help_text='Выберите тэг',
-        through='TagRecipe',
+        # through='TagRecipe',
         blank=False,
         null=False,
     )
