@@ -50,7 +50,32 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[validate_username,
+        UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        required=True,
+        max_length=255,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    class Meta:
+        model = User
         fields = '__all__'
+        read_only_fields = ('role',)
 
 
 class IngredientSerializer(serializers.ModelSerializer):

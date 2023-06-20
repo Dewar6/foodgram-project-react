@@ -14,3 +14,7 @@ class IngredientFilter(FilterSet):
         lookup_expr='icontains',
         label='Поиск по вхождению в произвольном месте'
     )
+
+    class Meta:
+        models = Ingredient
+        fields = '__all__'

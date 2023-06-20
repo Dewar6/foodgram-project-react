@@ -1,3 +1,4 @@
+import os.path
 from datetime import timedelta
 from pathlib import Path
 
@@ -135,3 +136,7 @@ DJOSER = {
     'SEND_PASSWORD_RESET_CONFIRMATION_EMAIL': True,
     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+DEFAULT_FROM_EMAIL = 'admin.yamdb@example.com'
