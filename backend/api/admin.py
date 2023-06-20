@@ -2,21 +2,21 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from recipes.models import Recipe, Tag, Ingredient, IngredientRecipe
+from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
 
 
 class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
 
-class IngredientRecipeInline(admin.TabularInline):
-    model = IngredientRecipe
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
     extra = 1
     verbose_name_plural = 'Ингредиенты'
     fields = ['ingredient', 'quantity']
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    inlines = [IngredientRecipeInline]
+    inlines = [RecipeIngredientInline]
     list_display = ('name', 'author',)
     search_fields = ('author', 'name', 'tag',)
     readonly_fields = ('get_favorite_count',)

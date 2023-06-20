@@ -34,7 +34,7 @@ class User(AbstractUser):
     email = models.EmailField(
         verbose_name='Адрес электронной почты',
         help_text='Укажите адрес электронной почты',
-        max_length=255,
+        max_length=254,
         unique=True,
         blank=False,
         null=False,

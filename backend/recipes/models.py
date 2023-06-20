@@ -1,8 +1,6 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-
 from api.validators import color_validator
-
+from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -107,7 +105,7 @@ class Recipe(models.Model):
         Ingredient,
         verbose_name='Ингредиенты',
         help_text='Выберите ингредиенты и их количество',
-        through='IngredientRecipe',
+        through='RecipeIngredient',
         blank=False,
         null=False,
     )
@@ -159,7 +157,7 @@ class TagRecipe(models.Model):
     )
 
 
-class IngredientRecipe(models.Model):
+class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE

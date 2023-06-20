@@ -2,7 +2,12 @@ Django==3.2.3
 djangorestframework==3.12.4
 djoser==2.1.0
 webcolors==1.11.1
-# psycopg2-binary==2.9.3
+#psycopg2-binary==2.9.3
 Pillow==9.0.0
 PyYAML==6.0
 python-dotenv
+djangorestframework-simplejwt==4.8.0
+django-filter==22.1
+requests==2.26.0
+urllib3==1.26.15
+PyJWT==2.1.0

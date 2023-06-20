@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='IngredientRecipe',
+            name='RecipeIngredient',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('quantity', models.PositiveSmallIntegerField(verbose_name='Количество')),
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(help_text='Напишите рецепт приготовления блюда', verbose_name='Рецепт приготовления')),
                 ('cooking_time', models.PositiveIntegerField(help_text='Введите время приготовления блюда', verbose_name='Время приготовления блюда (мин)')),
                 ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recipe', to=settings.AUTH_USER_MODEL, verbose_name='Автор рецепта')),
-                ('ingredients', models.ManyToManyField(help_text='Выберите ингредиенты и их количество', through='recipes.IngredientRecipe', to='recipes.Ingredient', verbose_name='Ингредиенты')),
+                ('ingredients', models.ManyToManyField(help_text='Выберите ингредиенты и их количество', through='recipes.RecipeIngredient', to='recipes.Ingredient', verbose_name='Ингредиенты')),
             ],
         ),
         migrations.CreateModel(
@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(help_text='Выберите тэг', to='recipes.Tag', verbose_name='Тэг'),
         ),
         migrations.AddField(
-            model_name='ingredientrecipe',
+            model_name='RecipeIngredient',
             name='recipe',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='recipes.recipe'),
         ),

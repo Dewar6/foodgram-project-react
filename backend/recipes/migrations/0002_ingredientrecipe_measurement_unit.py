@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='ingredientrecipe',
+            model_name='RecipeIngredient',
             name='measurement_unit',
             field=models.CharField(default='1', help_text='Введите единицу измерения ингредиента', max_length=10, verbose_name='Единица измерения'),
             preserve_default=False,

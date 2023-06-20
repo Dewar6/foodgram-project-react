@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('recipes', '0003_remove_ingredientrecipe_measurement_unit'),
+        ('recipes', '0003_remove_RecipeIngredient_measurement_unit'),
     ]
 
     operations = [
