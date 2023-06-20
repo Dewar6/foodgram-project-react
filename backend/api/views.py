@@ -7,6 +7,7 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, serializers
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -17,9 +18,10 @@ from api.permissions import (AdminOrReadOnlyPermission,
                              AuthorAndStaffOrReadOnlyPermission,
                              IsAdminOrSuperUser)
 from api.serializers import (SignUpSerializer, TokenSerializer,
-                             UserSerializer, IngredientSerializer,
+                             IngredientSerializer, UserWriteSerializer,
                              TagSerializer, RecipeSerializer,
-                             ProfileSerializer)
+                             ProfileSerializer, UserReadSerializer,
+                             SetPasswordSerializer)
 from foodgram_backend.settings import DEFAULT_FROM_EMAIL
 from recipes.models import Ingredient, Tag, Recipe
 
@@ -34,14 +36,22 @@ def sign_up(request):
     serializer.is_valid(raise_exception=True)
     username = serializer.data.get('username')
     email = serializer.data.get('email')
+    password = serializer.data.get('password')
+    
     try:
         user, created = User.objects.get_or_create(
             username=username,
-            email=email
+            email=email,
+            password=password
         )
     except IntegrityError:
         message = ('Пользователь с такими данными уже существует!')
         raise serializers.ValidationError(message)
+
+    if created:
+        user.set_password(password)
+        user.save()
+
     confirmation_code = default_token_generator.make_token(user)
     message = (
         f'{username}, ваш код подтверждения: {confirmation_code}'
@@ -58,32 +68,52 @@ api_view(['post'])
 def token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.data.get('username')
-    confirmation_code = serializer.data.get('confirmation_code')
-    user = get_object_or_404(User, username=username)
-    if default_token_generator.check_token(user, confirmation_code):
-        token = AccessToken.for_user(user)
+    email = serializer.data.get('email')
+    password = serializer.data.get('password')
+    user = get_object_or_404(User, email=email)
+    if not user.check_password(password):
         return Response(
-            {'token': f'{token}'},
-            status=HTTPStatus.OK
+            {'error_message': 'Неверный пароль или адрес электронной почты'},
+            status=HTTPStatus.BAD_REQUEST
         )
+    token = default_token_generator.make_token(user)
     return Response(
-        {'error_message': 'Неверный код или логин пользователя!'},
-        status=HTTPStatus.BAD_REQUEST
+        {'auth_token': token},
+        status=HTTPStatus.OK
     )
+
+@api_view(['post'])
+@permission_classes([permissions.IsAuthenticated])
+def logout(request):
+    user = request.user
+    try:
+        Token.objects.filter(user=user).delete()
+    except Token.DoesNotExist:
+        pass
+    return 
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
     permission_classes = (IsAdminOrSuperUser,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'set_password']:
+            return UserWriteSerializer
+        return UserReadSerializer
+
+    @action(detail=True, methods=['get'])
+    def user_info(self, request, pk=None):
+        user = self.get_object()
+        serializers = UserReadSerializer(user)
+        return Response(serializers.data)
+
     @action(
-        dеtail=False,
+        detail=False,
         methods=['get', 'patch'],
         url_path='me',
         url_name='me',
@@ -106,7 +136,22 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = ProfileSerializer(self.request.user)
         return Response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='set_password'
+    )
+    def set_password(self, request):
+        serializer = SetPasswordSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({'message': 'Пароль успешно изменён'}, status=HTTPStatus.OK)
 
-class RecipeViesSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
-    
+
+# class RecipeViesSet(viewsets.ModelViewSet):
+#     queryset = Recipe.objects.all()

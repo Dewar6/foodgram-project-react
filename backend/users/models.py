@@ -60,6 +60,13 @@ class User(AbstractUser):
         help_text=_('Выберите группы, к которым принадлежит пользователь.'),
         related_name='users_in_group'
     )
+    password = models.CharField(
+        verbose_name='Пароль',
+        help_text='Введите пароль',
+        max_length=128,
+        blank=False,
+        null=False
+    )
 
     class Meta:
         verbose_name = 'Пользователь'

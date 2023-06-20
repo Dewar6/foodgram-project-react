@@ -113,7 +113,7 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэг',
         help_text='Выберите тэг',
-        # through='TagRecipe',
+        #through='TagRecipe',
         blank=False,
         null=False,
     )
@@ -135,6 +135,17 @@ class Recipe(models.Model):
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
 
+class TagRecipe(models.Model):
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+
+
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
@@ -146,15 +157,21 @@ class FavoriteRecipe(models.Model):
         related_name='favorite_recipe'
     )
 
-class TagRecipe(models.Model):
-    tag = models.ForeignKey(
-        Tag,
-        on_delete=models.CASCADE
+
+class UserSubscription(models.Model):
+    subscriber = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriptions'
     )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE
+    target_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscribers'
     )
+
+    class Meta:
+        unique_together = ['subscriber', 'target_user']
 
 
 class RecipeIngredient(models.Model):

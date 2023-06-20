@@ -1,8 +1,11 @@
 import base64
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
-from recipes.models import Ingredient, Recipe, Tag, RecipeIngredient
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
+                            RecipeIngredient, Tag, UserSubscription)
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
@@ -35,7 +38,7 @@ class TokenSerializer(serializers.Serializer):
     )
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserReadSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -55,11 +58,42 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'password'
+        )
+
+
+class UserWriteSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True,
+        max_length=150,
+        validators=[validate_username,
+                    UniqueValidator(queryset=User.objects.all())]
+    )
+    email = serializers.EmailField(
+        required=True,
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    password = serializers.CharField(
+        required=True,
+        max_length=128,
+        validators=[validate_password]
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
         )
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.BooleanField(
+        required=True,
+    )
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -74,8 +108,21 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
-        read_only_fields = ('role',)
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed'
+        )
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        return (
+            UserSubscription.objects.filter(subscriber=user).exists()
+            or FavoriteRecipe.objects.filter(user=user).exists()
+        )
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -135,3 +182,20 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.create(recipe=instance, **ingredient_data)
         instance.tag.set(tags_data)
         return instance
+
+
+class SetPasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(
+        required=True,
+        max_length=128
+    )
+    new_password = serializers.CharField(
+        required=True,
+        max_length=128
+    )
+
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError('Неверный текущий пароль')
+        return value
