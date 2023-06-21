@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, serializers
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -30,40 +30,32 @@ User = get_user_model()
 
 
 @api_view(['post'])
+@authentication_classes([])
 @permission_classes([permissions.AllowAny])
 def sign_up(request):
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.data.get('username')
-    email = serializer.data.get('email')
-    password = serializer.data.get('password')
-    
+    username = serializer.validated_data.get('username')
+    email = serializer.validated_data.get('email')
+    password = serializer.validated_data.get('password')
+    first_name = serializer.validated_data.get('first_name')
+    last_name = serializer.validated_data.get('last_name')
     try:
-        user, created = User.objects.get_or_create(
+        user = User.objects.create_user(
             username=username,
             email=email,
-            password=password
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
         )
     except IntegrityError:
         message = ('Пользователь с такими данными уже существует!')
         raise serializers.ValidationError(message)
-
-    if created:
-        user.set_password(password)
-        user.save()
-
-    confirmation_code = default_token_generator.make_token(user)
-    message = (
-        f'{username}, ваш код подтверждения: {confirmation_code}'
-    )
-    send_mail(message=message,
-              subject='Подтверждение адреса почты',
-              from_email=DEFAULT_FROM_EMAIL,
-              recipient_list=[user.email])
+    serializer = SignUpSerializer(user)
     return Response(serializer.data, status=HTTPStatus.OK)
 
 
-api_view(['post'])
+@api_view(['post'])
 @permission_classes([permissions.AllowAny])
 def token(request):
     serializer = TokenSerializer(data=request.data)
@@ -90,7 +82,7 @@ def logout(request):
         Token.objects.filter(user=user).delete()
     except Token.DoesNotExist:
         pass
-    return 
+    return Response(status=HTTPStatus.OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):

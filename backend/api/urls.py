@@ -10,11 +10,11 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='users')
 
 auth_path = [
-    path('auth/signup/', sign_up, name='signup'),
+    path('users/', sign_up, name='signup'),
     path('auth/token/login/', token, name='token'),
 ]
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('auth/', include(auth_path)),
+    path('', include(auth_path)),
 ]

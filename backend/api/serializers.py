@@ -1,7 +1,6 @@
 import base64
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from django.db import IntegrityError
 from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
@@ -15,7 +14,7 @@ from api.validators import validate_username
 User = get_user_model()
 
 
-class SignUpSerializer(serializers.Serializer):
+class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -25,6 +24,34 @@ class SignUpSerializer(serializers.Serializer):
         required=True,
         max_length=254,
     )
+    password = serializers.CharField(
+        required=True,
+        max_length=128,
+        write_only=True,
+    )
+    first_name = serializers.CharField(
+        required=True,
+        max_length=150,
+    )
+    last_name = serializers.CharField(
+        required=True,
+        max_length=150
+    )
+    id = serializers.IntegerField(
+        required=False
+    )
+
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
+        )
 
 
 class TokenSerializer(serializers.Serializer):
@@ -76,7 +103,6 @@ class UserWriteSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         required=True,
         max_length=128,
-        validators=[validate_password]
     )
 
     class Meta:
