@@ -7,7 +7,7 @@ app_name = 'api'
 
 router = DefaultRouter()
 # router.register(r'recipes', RecipeViewSet)
-router.register(r'users', UserViewSet, basename='users')
+# router.register(r'users', UserViewSet, basename='users')
 
 auth_path = [
     path('users/', sign_up, name='signup'),
