@@ -10,7 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -31,32 +31,6 @@ User = get_user_model()
 
 
 @api_view(['post'])
-@authentication_classes([])
-@permission_classes([permissions.AllowAny])
-def sign_up(request):
-    serializer = SignUpSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data.get('username')
-    email = serializer.validated_data.get('email')
-    password = serializer.validated_data.get('password')
-    first_name = serializer.validated_data.get('first_name')
-    last_name = serializer.validated_data.get('last_name')
-    try:
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-        )
-    except IntegrityError:
-        message = ('Пользователь с такими данными уже существует!')
-        raise serializers.ValidationError(message)
-    serializer = SignUpSerializer(user)
-    return Response(serializer.data, status=HTTPStatus.OK)
-
-
-@api_view(['post'])
 @permission_classes([permissions.AllowAny])
 def token(request):
     serializer = TokenSerializer(data=request.data)
@@ -69,9 +43,9 @@ def token(request):
             {'error_message': 'Неверный пароль или адрес электронной почты'},
             status=HTTPStatus.BAD_REQUEST
         )
-    token = default_token_generator.make_token(user)
+    token = AccessToken.for_user(user)
     return Response(
-        {'auth_token': token},
+        {'access_token': str(token)},
         status=HTTPStatus.OK
     )
 
@@ -88,16 +62,16 @@ def logout(request):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (IsAdminOrSuperUser,)
+    permission_classes=(AllowAny,)
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update', 'set_password']:
-            return UserWriteSerializer
-        return UserReadSerializer
+    #def get_serializer_class(self):
+    #     if self.action in ['create', 'update', 'partial_update', 'set_password']:
+    #         return UserWriteSerializer
+    #     return UserReadSerializer
 
     @action(detail=True, methods=['get'])
     def user_info(self, request, pk=None):
@@ -145,6 +119,26 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         return Response({'message': 'Пароль успешно изменён'}, status=HTTPStatus.OK)
 
+    def create(self, request):
+        serializer = SignUpSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        email = serializer.validated_data.get('email')
+        password = serializer.validated_data.get('password')
+        first_name = serializer.validated_data.get('first_name')
+        last_name = serializer.validated_data.get('last_name')
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+            )
+        except IntegrityError:
+            message = ('Пользователь с такими данными уже существует!')
+            raise serializers.ValidationError(message)
+        serializer = SignUpSerializer(user)
+        return Response(serializer.data, status=HTTPStatus.OK)
 
-# class RecipeViesSet(viewsets.ModelViewSet):
-#     queryset = Recipe.objects.all()
+

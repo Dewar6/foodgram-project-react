@@ -2,6 +2,7 @@ import os.path
 from datetime import timedelta
 from pathlib import Path
 
+
 from dotenv import load_dotenv
 
 
@@ -127,15 +128,15 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-DJOSER = {
-    'USER_AUTHENTICATION_RULE': 'djoser.authentication.TokenAuthenticationRule',
-    'AUTH_TOKEN_MODEL': 'djoser.Token',
-    'SEND_ACTIVATION_EMAIL': True,
-    'SEND_CONFIRMATION_EMAIL': True,
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
-    'SEND_PASSWORD_RESET_CONFIRMATION_EMAIL': True,
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-}
+# DJOSER = {
+#     'USER_AUTHENTICATION_RULE': 'djoser.authentication.TokenAuthenticationRule',
+#     'AUTH_TOKEN_MODEL': 'djoser.Token',
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'SEND_CONFIRMATION_EMAIL': True,
+#     'ACTIVATION_URL': 'activate/{uid}/{token}',
+#     'SEND_PASSWORD_RESET_CONFIRMATION_EMAIL': True,
+#     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
+# }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
