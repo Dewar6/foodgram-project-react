@@ -14,7 +14,7 @@ from api.validators import validate_username
 User = get_user_model()
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -54,16 +54,18 @@ class SignUpSerializer(serializers.ModelSerializer):
         )
 
 
-class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        required=True,
-        max_length=150,
-        validators=[validate_username, ]
-    )
-    confirmation_code = serializers.CharField(
-        required=True,
-    )
+# class TokenSerializer(serializers.Serializer):
+#     password = serializers.CharField(
+#         required=True,
+#         max_length=128,
+#         write_only=True,
+#     )
+#     email = serializers.EmailField(
+#         required=True,
+#     )
 
+#     class Meta:
+#         fields = ('auth_token',)
 
 class UserReadSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
@@ -81,6 +83,7 @@ class UserReadSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(
         required=False
     )
+
     class Meta:
         model = User
         fields = (
@@ -117,12 +120,14 @@ class UserWriteSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         required=True,
         max_length=128,
+        write_only=True,
     )
 
     class Meta:
         model = User
         fields = (
             'email',
+            'id',
             'username',
             'first_name',
             'last_name',

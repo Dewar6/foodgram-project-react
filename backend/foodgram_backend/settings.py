@@ -115,7 +115,7 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -123,20 +123,18 @@ REST_FRAMEWORK = {
 
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=5),
-    'AUTH_HEADER_TYPES': ('Bearer',),
+DJOSER = {
+    'HIDE_USERS': False,
+    'LOGIN_FIELD':'email',
+    'SEND_ACTIVATION_EMAIL':False,
+    'SERIALIZERS':{
+        'user':'api.serializers.UserSerializer',
+    },
+    'PERMISSIONS':{
+        'user':['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list':['rest_framework.permissions.AllowAny'],
+    },
 }
-
-# DJOSER = {
-#     'USER_AUTHENTICATION_RULE': 'djoser.authentication.TokenAuthenticationRule',
-#     'AUTH_TOKEN_MODEL': 'djoser.Token',
-#     'SEND_ACTIVATION_EMAIL': True,
-#     'SEND_CONFIRMATION_EMAIL': True,
-#     'ACTIVATION_URL': 'activate/{uid}/{token}',
-#     'SEND_PASSWORD_RESET_CONFIRMATION_EMAIL': True,
-#     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-# }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
