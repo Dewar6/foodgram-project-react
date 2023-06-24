@@ -62,22 +62,15 @@ def logout(request):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes=(AllowAny,)
-    lookup_field = 'username'
+    permission_classes=(IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=username',)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
-    #def get_serializer_class(self):
-    #     if self.action in ['create', 'update', 'partial_update', 'set_password']:
-    #         return UserWriteSerializer
-    #     return UserReadSerializer
-
-    @action(detail=True, methods=['get'])
-    def user_info(self, request, pk=None):
-        user = self.get_object()
-        serializers = UserReadSerializer(user)
-        return Response(serializers.data)
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update', 'set_password']:
+            return UserWriteSerializer
+        return UserReadSerializer
 
     @action(
         detail=False,

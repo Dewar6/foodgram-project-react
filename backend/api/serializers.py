@@ -66,6 +66,7 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserReadSerializer(serializers.ModelSerializer):
+    is_subscribed = serializers.SerializerMethodField()
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -77,15 +78,28 @@ class UserReadSerializer(serializers.ModelSerializer):
         max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-
+    id = serializers.IntegerField(
+        required=False
+    )
     class Meta:
         model = User
         fields = (
             'email',
+            'id',
             'username',
             'first_name',
             'last_name',
+            'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return bool(
+                UserSubscription.objects.filter(subscriber=user).first()
+                or FavoriteRecipe.objects.filter(user=user).first()
+            )
+        return False
 
 
 class UserWriteSerializer(serializers.ModelSerializer):
