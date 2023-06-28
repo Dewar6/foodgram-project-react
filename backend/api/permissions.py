@@ -33,7 +33,7 @@ class AdminOrReadOnlyPermission(permissions.BasePermission):
             and (request.user.role == User.Role.ADMIN)
         )
 
-class CreateAnyOtherAuthenticated(permissions.BasePermission):
+class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
             return True

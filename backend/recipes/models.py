@@ -95,7 +95,7 @@ class Recipe(models.Model):
         blank=False,
         null=False,    
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Рецепт приготовления',
         help_text='Напишите рецепт приготовления блюда',
         blank=False,
@@ -109,10 +109,10 @@ class Recipe(models.Model):
         blank=False,
         null=False,
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
-        verbose_name='Тэг',
-        help_text='Выберите тэг',
+        verbose_name='Тэги',
+        help_text='Выберите тэги',
         #through='TagRecipe',
         blank=False,
         null=False,
@@ -158,7 +158,7 @@ class FavoriteRecipe(models.Model):
     )
 
 
-class UserSubscription(models.Model):
+class UserSubscribe(models.Model):
     subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -190,3 +190,25 @@ class RecipeIngredient(models.Model):
     )
 
 
+class ShoppingCart(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE
+    )
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Список покупок',
+        blank=False,
+        null=False,
+    )
+    image = models.ImageField(
+        verbose_name='Фотография блюда',
+        upload_to='images/',
+        blank=False,
+        null=False,    
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления блюда',
+        null=False,
+        blank=False,
+    )
