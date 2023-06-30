@@ -81,3 +81,19 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class UserSubscribe(models.Model):
+    subscriber = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscriptions'
+    )
+    target_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='subscribers'
+    )
+
+    class Meta:
+        unique_together = ['subscriber', 'target_user']

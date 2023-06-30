@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
+from recipes.models import Recipe, Tag, Ingredient, IngredientAmount
 
 
 class CustomUserAdmin(UserAdmin):
@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    model = RecipeIngredient
+    model = IngredientAmount
     extra = 1
     verbose_name_plural = 'Ингредиенты'
     fields = ['ingredient', 'amount']

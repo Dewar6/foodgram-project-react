@@ -18,7 +18,9 @@ from api.serializers import (IngredientSerializer, TagSerializer,
                              FavoriteRecipeSerializer,
                              SubscribeSerializer)
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
-                            FavoriteRecipe, UserSubscribe)
+                            FavoriteRecipe)
+
+from users.models import UserSubscribe
 
 
 User = get_user_model()
@@ -34,18 +36,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     filterset_class = RecipesFilter
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        recipe = serializer.save(author=request.user)
-        image = request.data.get('image')
-        recipe.image.save(image.name, image, save=True)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data)
-
     def perform_create(self, serializer):
-        amount = self.request.data.get('amount')
-        serializer.save(amount=amount)
+        serializer.save(author=self.request.user)
+
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     recipe = serializer.save(author=request.user)
+    #     image = request.data.get('image')
+    #     recipe.image.save(image.name, image, save=True)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(serializer.data)
+
+    # def perform_create(self, serializer):
+    #     amount = self.request.data.get('amount')
+    #     serializer.save(amount=amount)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):

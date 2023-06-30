@@ -8,7 +8,7 @@ class Ingredient(models.Model):
     name = models.CharField(
         max_length=255,
         verbose_name='Ингредиент',
-        help_text='Введите название ингредиента',
+        help_text='Название ингредиента',
         blank=False,
         null=False,
         db_index=True,
@@ -17,35 +17,14 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(
         max_length=10,
         verbose_name='Единица измерения',
-        help_text='Выберите единицу измерения ингредиента',
+        help_text='Eдиницу измерения ингредиента',
         blank=False,
         null=False,
-    )
-    # amount = models.ForeignKey(
-    #     IngredientAmount,
-    #     on_delete=models.CASCADE,
-    #     verbose_name='Количество',
-    #     null=True,
-    # )
-
-    # def __str__(self):
-    #     return self.name
-
-class IngredientAmount(models.Model):
-    ingredient = models.ForeignKey(
-        Ingredient,
-        verbose_name='Ингредиент',
-        on_delete=models.CASCADE,
-        blank=False,
-        null=False,
-    )
-    amount = models.PositiveSmallIntegerField(
-        verbose_name='Количество',
-        help_text='Укажите количество ингредиента',
     )
 
     def __str__(self):
-        return f'{self.ingredient} - {self.amount}'
+        return self.name
+
 
 class Tag(models.Model):
     name = models.CharField(
@@ -110,7 +89,7 @@ class Recipe(models.Model):
         Ingredient,
         verbose_name='Ингредиенты',
         help_text='Выберите ингредиенты и их количество',
-        through='RecipeIngredient',
+        through='IngredientAmount',
         blank=False,
         null=False,
     )
@@ -159,61 +138,57 @@ class Recipe(models.Model):
         return self.shopping_cart_recipes.filter(recipe=self, user=user).exists()
 
 
+class IngredientAmount(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name='Рецепт',
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False
+        
+    )
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        help_text='Укажите количество ингредиента',
+    )
+
+    def __str__(self):
+        return f'{self.ingredient} - {self.amount}'
+
+
 class TagRecipe(models.Model):
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE,
+        verbose_name='Тэг',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
+        verbose_name='Рецепт'
     )
 
 
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
+        verbose_name='Пользователь',
         on_delete=models.CASCADE,
         related_name='favorite_recipes_favorite'
     )
     recipe = models.ForeignKey(
         Recipe,
+        verbose_name='Рецепт',
         on_delete=models.CASCADE,
         related_name='favorite_by'
     )
-
-
-class UserSubscribe(models.Model):
-    subscriber = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscriptions'
-    )
-    target_user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscribers'
-    )
-
-    class Meta:
-        unique_together = ['subscriber', 'target_user']
-
-
-class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE
-    )
-    ingredient = models.ForeignKey(
-        Ingredient,
-        on_delete=models.CASCADE
-    )
-    amount = models.PositiveSmallIntegerField(
-        verbose_name='Количество',
-        null=False,
-        blank=False,
-    )
-
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -243,3 +218,21 @@ class ShoppingCart(models.Model):
         null=False,
         blank=False,
     )
+
+
+#class RecipeIngredient(models.Model):
+#     recipe = models.ForeignKey(
+#         Recipe,
+#         verbose_name='Рецепт',
+#         on_delete=models.CASCADE,
+#     )
+#     ingredient = models.ForeignKey(
+#         Ingredient,
+#         verbose_name='Ингредиент',
+#         on_delete=models.CASCADE
+#     )
+#     amount = models.PositiveSmallIntegerField(
+#         verbose_name='Количество',
+#         null=False,
+#         blank=False,
+#     )
