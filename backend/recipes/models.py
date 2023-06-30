@@ -4,16 +4,6 @@ from django.db import models
 
 User = get_user_model()
 
-class IngredientQuantity(models.Model):
-    name = models.PositiveSmallIntegerField(
-        verbose_name='Количество',
-        help_text='Выберите единицу измерения ингредиента',
-    )
-
-    def __str__(self):
-        return self.name
-
-
 class Ingredient(models.Model):
     name = models.CharField(
         max_length=255,
@@ -31,16 +21,31 @@ class Ingredient(models.Model):
         blank=False,
         null=False,
     )
-    quantity = models.ForeignKey(
-        IngredientQuantity,
+    # amount = models.ForeignKey(
+    #     IngredientAmount,
+    #     on_delete=models.CASCADE,
+    #     verbose_name='Количество',
+    #     null=True,
+    # )
+
+    # def __str__(self):
+    #     return self.name
+
+class IngredientAmount(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        verbose_name='Ингредиент',
         on_delete=models.CASCADE,
+        blank=False,
+        null=False,
+    )
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        null=True,
+        help_text='Укажите количество ингредиента',
     )
 
     def __str__(self):
-        return self.name
-
+        return f'{self.ingredient} - {self.amount}'
 
 class Tag(models.Model):
     name = models.CharField(
@@ -113,7 +118,7 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэги',
         help_text='Выберите тэги',
-        #through='TagRecipe',
+        through='TagRecipe',
         blank=False,
         null=False,
     )
@@ -123,6 +128,19 @@ class Recipe(models.Model):
         blank=False,
         null=False,
     )
+    favorite_recipes = models.ManyToManyField(
+        User,
+        through='FavoriteRecipe',
+        related_name='favorite_recipes',
+        blank=True,
+        null=True,
+    )
+    in_shopping_cart = models.ManyToManyField(
+        'recipes.ShoppingCart',
+        related_name='recipes_in_shopping_cart',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         unique_together = ('author', 'name')
@@ -131,30 +149,37 @@ class Recipe(models.Model):
         return self.name
 
     def get_favorite_count(self):
-        return self.favorite_recipe.count()
+        return self.favorite_by.count()
     get_favorite_count.short_description = 'Число добавлений в избранное'
+
+    def is_favorited(self, user):
+        return self.favorite_recipes.filter(id=user.id).exists()
+
+    def is_in_shopping_cart(self, user):
+        return self.shopping_cart_recipes.filter(recipe=self, user=user).exists()
 
 
 class TagRecipe(models.Model):
     tag = models.ForeignKey(
         Tag,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
 
 class FavoriteRecipe(models.Model):
     user = models.ForeignKey(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='favorite_recipes_favorite'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite_recipe'
+        related_name='favorite_by'
     )
 
 
@@ -183,7 +208,7 @@ class RecipeIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE
     )
-    quantity = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
         null=False,
         blank=False,
@@ -191,9 +216,15 @@ class RecipeIngredient(models.Model):
 
 
 class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_carts'
+    )
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='shopping_cart_recipes'
     )
     name = models.CharField(
         max_length=256,

@@ -8,11 +8,16 @@ from recipes.models import Recipe, Tag, Ingredient, RecipeIngredient
 class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
 
+
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 1
     verbose_name_plural = 'Ингредиенты'
-    fields = ['ingredient', 'quantity']
+    fields = ['ingredient', 'amount']
+
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color_code', 'slug',)
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -25,12 +30,14 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorite_recipe.count()
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
+
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit',)
     search_fields = ('name',)
 
+
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Tag)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)

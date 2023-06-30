@@ -11,3 +11,4 @@ django-filter==22.1
 requests==2.26.0
 urllib3==1.26.15
 PyJWT==2.1.0
+drf-extra-fields==3.5.0
