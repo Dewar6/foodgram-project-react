@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets, serializers
+from rest_framework import filters, permissions, viewsets, serializers, generics
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.permissions import (IsAuthenticatedOrReadOnly, AllowAny,
                                         IsAuthenticated)
@@ -81,3 +81,11 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class SubscribeViewSet(viewsets.ModelViewSet):
     queryset = UserSubscribe.objects.all
     serializer_class = SubscribeSerializer
+
+
+class UserSubscriptionListView(generics.ListAPIView):
+    serializer_class = SubscribeSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Su

@@ -52,11 +52,15 @@ class UserSerializer(serializers.ModelSerializer):
             'is_subscribed': {'read_only': True},
         }
 
-    def get_is_subscribed(self, obj):
-        if self.context['request'].method == 'GET':
-            user = self.context['request'].user
-            return UserSubscribe.objects.filter(subscriber=user).exists()
-        return None
+    #def get_is_subscribed(self, obj):
+    #     if self.context['request'].method == 'GET':
+    #         user = self.context['request'].user
+    #         return UserSubscribe.objects.filter(subscriber=user).exists()
+    #     return None
+
+    #def get_is_subscribed(self, instance):
+    #     user = User.objects.get(username=instance.username)
+    #     return UserSubscribe.objects.filter(subscriber=user).exists()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

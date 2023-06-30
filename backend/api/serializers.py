@@ -64,7 +64,8 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-        read_only_fields = ('__all__',)
+        read_only_fields = '__all__'
+
 
 
 class ImageField(serializers.Field):
@@ -86,17 +87,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         many=True,
         write_only=True
     )
-    # ingredients = serializers.PrimaryKeyRelatedField(
-    #     queryset=Ingredient.objects.all(),
-    #     many=True,
-    #     write_only=True
-    # )
-    # tags = serializers.SerializerMethodField()
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
     )
-
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -120,7 +114,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_shopping_cart',
         )
 
-
     @transaction.atomic
     def create(self, validated_data):
         try: 
@@ -137,12 +130,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
             recipe.tags.set(tags_data)
         except IntegrityError:
-            error_message = 'Рецепт с таким названием у данного пользователя уже создан'
+            error_message = 'Рецепт с таким названием у данного' \
+                            'пользователя уже существует'
             raise serializers.ValidationError(error_message)
         return recipe
 
 
-    # def update(self, instance, validated_data):
+    #def update(self, instance, validated_data):
     #     ingredients_data = validated_data.pop('ingredients', [])
     #     tags_data = validated_data.pop('tag', [])
     #     instance = super().update(instance, validated_data)

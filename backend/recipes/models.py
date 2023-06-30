@@ -220,19 +220,5 @@ class ShoppingCart(models.Model):
     )
 
 
-#class RecipeIngredient(models.Model):
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         verbose_name='Рецепт',
-#         on_delete=models.CASCADE,
-#     )
-#     ingredient = models.ForeignKey(
-#         Ingredient,
-#         verbose_name='Ингредиент',
-#         on_delete=models.CASCADE
-#     )
-#     amount = models.PositiveSmallIntegerField(
-#         verbose_name='Количество',
-#         null=False,
-#         blank=False,
-#     )
+class Subscriptions(models.Model):
+    pass
