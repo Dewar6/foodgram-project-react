@@ -97,3 +97,6 @@ class UserSubscribe(models.Model):
 
     class Meta:
         unique_together = ['subscriber', 'target_user']
+
+    def __str__(self):
+        return f'{self.subscriber} подписан на {self.target_user}'

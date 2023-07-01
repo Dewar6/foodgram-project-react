@@ -220,5 +220,3 @@ class ShoppingCart(models.Model):
     )
 
 
-class Subscriptions(models.Model):
-    pass

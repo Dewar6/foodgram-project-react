@@ -1,7 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from rest_framework import serializers
+from rest_framework.fields import IntegerField, SerializerMethodField
+from rest_framework.exceptions import ValidationError
 
+from recipes.models import Recipe
 from users.models import UserSubscribe
 from api.validators import validate_username
 
@@ -11,30 +15,6 @@ User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
-    username = serializers.CharField(
-        required=True,
-        max_length=150,
-    )
-    email = serializers.EmailField(
-        required=True,
-        max_length=254,
-    )
-    password = serializers.CharField(
-        required=True,
-        max_length=128,
-        write_only=True,
-    )
-    first_name = serializers.CharField(
-        required=True,
-        max_length=150,
-    )
-    last_name = serializers.CharField(
-        required=True,
-        max_length=150
-    )
-    id = serializers.IntegerField(
-        required=False
-    )
 
     class Meta:
         model = User
@@ -52,21 +32,26 @@ class UserSerializer(serializers.ModelSerializer):
             'is_subscribed': {'read_only': True},
         }
 
-    #def get_is_subscribed(self, obj):
-    #     if self.context['request'].method == 'GET':
-    #         user = self.context['request'].user
-    #         return UserSubscribe.objects.filter(subscriber=user).exists()
-    #     return None
 
-    #def get_is_subscribed(self, instance):
-    #     user = User.objects.get(username=instance.username)
-    #     return UserSubscribe.objects.filter(subscriber=user).exists()
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if self.context.get('request').user.is_anonymous:
+            return False
+        return obj.subscribers.filter(subscriber=request.user).exists()
+
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if self.context['view'].action == 'create':
-            del data['is_subscribed']
+            data = {
+                'email': instance.email,
+                'id': instance.id,
+                'username': instance.username,
+                'first_name': instance.first_name,
+                'last_name': instance.last_name,
+            }
         return data
+
 
     def create(self, validated_data):
         try:
@@ -82,3 +67,47 @@ class UserSerializer(serializers.ModelSerializer):
             error_message = 'Пользователь с таким именем или адресом электронной почты уже существует.'
             raise serializers.ValidationError(error_message)
         return user
+
+
+class SubscribeSerializer(serializers.ModelSerializer):
+    recipe_count = SerializerMethodField()
+    recipes = SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipe_count',
+            'recipes'
+        )
+        read_only_fields = (
+            'email',
+            'username'
+        )
+
+        def validate(self, data):
+            subscriber = self.instance
+            target_user = self.context.get('request').user
+            if UserSubscribe.objects.filter(
+                subscriber=subscriber,
+                target_user=target_user
+            ).exists():
+                raise ValidationError(
+                    detail='Вы уже подписаны на данного автора'
+                )
+            if target_user == subscriber:
+                raise ValidationError(
+                    detail='Подписываться на себя нельзя'
+                )
+            return data
+
+
+
+
+
+

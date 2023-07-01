@@ -10,7 +10,6 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
 
-from users.models import UserSubscribe
 from users.serializers import UserSerializer
 
 
@@ -211,59 +210,7 @@ class FavoriteRecipeSerializer(serializers.Serializer):
         return serializers.data.get('cooking_time')
 
 
-class SubscribeSerializer(serializers.Serializer):
-    email = serializers.EmailField(
-        source='subscriber.email',
-        read_only=True
-    )
-    id = serializers.PrimaryKeyRelatedField(
-        source='subscriber.id',
-        read_only=True
-    )
-    username = serializers.CharField(
-        source='subscriber.username',
-        read_only=True
-    )
-    first_name = serializers.CharField(
-        source='subscriber.first_name',
-        read_only=True
-    )
-    last_name = serializers.CharField(
-        source='subscriber.last_name',
-        read_only=True
-    )
-    is_subscribed = serializers.SerializerMethodField()
-    recipe = serializers.SerializerMethodField()
-    recipe_count = serializers.SerializerMethodField()
 
-    class Meta:
-        model = UserSubscribe
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return UserSubscribe.objects.filter(subscriber=user).exists()
-
-    def get_recipes(self, obj):
-        user = self.context['request'].user
-        subscribed = UserSubscribe.objects.filter(subscriber=user)
-        subscribed_users = subscribed.values_list('target_user', flat=True)
-        return Recipe.objects.filter(author__in=subscribed_users)
-
-    def get_recipes_count(self, obj):
-        user = self.context['request'].user
-        subscribed = UserSubscribe.objects.filter(subscriber=user)
-        subscribed_users = subscribed.values_list('target_user', flat=True)
-        return Recipe.objects.filter(author__in=subscribed_users).count()
 
         
 #class ProfileSerializer(serializers.ModelSerializer):

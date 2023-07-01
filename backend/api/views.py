@@ -15,12 +15,9 @@ from api.permissions import (AdminOrReadOnlyPermission,
                              CreateAnyOtherAuthenticatedPermission)
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, ShoppingCartSerializer,
-                             FavoriteRecipeSerializer,
-                             SubscribeSerializer)
+                             FavoriteRecipeSerializer,                             )
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
                             FavoriteRecipe)
-
-from users.models import UserSubscribe
 
 
 User = get_user_model()
@@ -78,14 +75,3 @@ class FavoriteViewSet(viewsets.ModelViewSet):
     serializer_class = FavoriteRecipeSerializer
 
 
-class SubscribeViewSet(viewsets.ModelViewSet):
-    queryset = UserSubscribe.objects.all
-    serializer_class = SubscribeSerializer
-
-
-class UserSubscriptionListView(generics.ListAPIView):
-    serializer_class = SubscribeSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return Su
