@@ -2,11 +2,10 @@ from django import forms
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
 from recipes.models import Recipe, Tag, Ingredient, IngredientAmount
-
+from users.models import User
 
 class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
@@ -52,7 +51,6 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)

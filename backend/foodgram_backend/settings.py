@@ -17,6 +17,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -107,9 +108,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly', 
+        'rest_framework.permissions.IsAuthenticated' 
     ],
-
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -125,16 +125,17 @@ DJOSER = {
     'LOGIN_FIELD':'email',
     'SEND_ACTIVATION_EMAIL':False,
     'SERIALIZERS':{
-        'user':'api.serializers.UserSerializer',
-        'user_create':'api.serializers.UserSerializer',
-        'current_user':'api.serializers.UserSerializer',
+        'user':'users.serializers.UserSerializer',
+        'user_create':'users.serializers.UserSerializer',
+        'current_user':'users.serializers.UserSerializer',
     },
     'PERMISSIONS':{
         'user':['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list':['api.permissions.CreateAnyOtherAuthenticatedPermission'],
+        'user_list':['rest_framework.permissions.AllowAny'],
     },
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 DEFAULT_FROM_EMAIL = 'admin.foodgram@example.com'
+

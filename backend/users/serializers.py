@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from rest_framework import serializers
@@ -6,15 +5,14 @@ from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import Recipe
-from users.models import UserSubscribe
+from users.models import User, UserSubscribe
 from api.validators import validate_username
 
-
-User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
+
 
     class Meta:
         model = User
@@ -42,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if self.context['view'].action == 'create':
+        if self.context['view'].action == 'create' or 'get':
             data = {
                 'email': instance.email,
                 'id': instance.id,
@@ -70,8 +68,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(serializers.ModelSerializer):
-    recipe_count = SerializerMethodField()
-    recipes = SerializerMethodField()
+    # recipe_count = SerializerMethodField()
+    # recipes = SerializerMethodField()
 
     class Meta:
         model = User
@@ -94,8 +92,8 @@ class SubscribeSerializer(serializers.ModelSerializer):
             subscriber = self.instance
             target_user = self.context.get('request').user
             if UserSubscribe.objects.filter(
-                subscriber=subscriber,
-                target_user=target_user
+                subscriber=subscriber.id,
+                target_user=target_user.id
             ).exists():
                 raise ValidationError(
                     detail='Вы уже подписаны на данного автора'

@@ -6,9 +6,8 @@ from api.validators import validate_username
 
 
 class User(AbstractUser):
-    class Role(models.TextChoices):
-        ADMIN = 'admin'
-        USER = 'user'
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     username = models.CharField(
         verbose_name='Логин пользователя',
@@ -39,27 +38,7 @@ class User(AbstractUser):
         blank=False,
         null=False,
     )
-    role = models.CharField(
-        verbose_name='Статус пользователя',
-        max_length=50,
-        choices=Role.choices,
-        default=Role.USER,
-    )
 
-    user_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name=_('Разрешения пользователя'),
-        blank=True,
-        help_text=_('Выберите разрешения пользователя.'),
-        related_name='users_with_permission'
-    )
-    groups = models.ManyToManyField(
-        Group,
-        verbose_name=_('Группы пользователя'),
-        blank=True,
-        help_text=_('Выберите группы, к которым принадлежит пользователь.'),
-        related_name='users_in_group'
-    )
     password = models.CharField(
         verbose_name='Пароль',
         help_text='Введите пароль',

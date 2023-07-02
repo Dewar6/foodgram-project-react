@@ -1,8 +1,7 @@
 from api.validators import color_validator
-from django.contrib.auth import get_user_model
 from django.db import models
 
-User = get_user_model()
+from users.models import User
 
 class Ingredient(models.Model):
     name = models.CharField(

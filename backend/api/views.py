@@ -1,5 +1,3 @@
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, serializers, generics
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
@@ -18,9 +16,6 @@ from api.serializers import (IngredientSerializer, TagSerializer,
                              FavoriteRecipeSerializer,                             )
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
                             FavoriteRecipe)
-
-
-User = get_user_model()
 
 
 class TagViewSet(viewsets.ModelViewSet):

@@ -1,7 +1,6 @@
 import base64
 
 from drf_extra_fields.fields import Base64ImageField
-from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import transaction, IntegrityError
 from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
@@ -10,10 +9,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
 
-from users.serializers import UserSerializer
-
-
-User = get_user_model()
+from users.serializers import  User, UserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
