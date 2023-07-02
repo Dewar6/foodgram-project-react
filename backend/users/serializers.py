@@ -67,42 +67,31 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class SubscribeSerializer(serializers.ModelSerializer):
+class SubscribeSerializer(UserSerializer):
     # recipe_count = SerializerMethodField()
     # recipes = SerializerMethodField()
 
     class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipe_count',
-            'recipes'
-        )
         read_only_fields = (
             'email',
             'username'
         )
 
-        def validate(self, data):
-            subscriber = self.instance
-            target_user = self.context.get('request').user
-            if UserSubscribe.objects.filter(
-                subscriber=subscriber.id,
-                target_user=target_user.id
-            ).exists():
-                raise ValidationError(
-                    detail='Вы уже подписаны на данного автора'
-                )
-            if target_user == subscriber:
-                raise ValidationError(
-                    detail='Подписываться на себя нельзя'
-                )
-            return data
+        # def validate(self, data):
+        #     subscriber = self.instance
+        #     target_user = self.context.get('request').user
+        #     if UserSubscribe.objects.filter(
+        #         subscriber=subscriber.id,
+        #         target_user=target_user.id
+        #     ).exists():
+        #         raise ValidationError(
+        #             detail='Вы уже подписаны на данного автора'
+        #         )
+        #     if target_user == subscriber:
+        #         raise ValidationError(
+        #             detail='Подписываться на себя нельзя'
+        #         )
+        #     return data
 
 
 

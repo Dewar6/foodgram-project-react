@@ -2,14 +2,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from api.permissions import CreateAnyOtherAuthenticatedPermission
 from users.models import User, UserSubscribe
 from users.serializers import SubscribeSerializer, UserSerializer
-
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -18,42 +15,56 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [CreateAnyOtherAuthenticatedPermission,]
 
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, pk):
         subscriber = request.user
-        queryset = User.objects.all()
-        print(list(queryset))
         target_user = get_object_or_404(User, id=pk)
-        if UserSubscribe.objects.filter(subscriber=subscriber.id, target_user=target_user.id).exists():
-            return Response({'message': 'Вы уже подписаны на данного автора'}, status=400)
-        if subscriber == target_user:
-            return Response({'message': 'Подписываться на себя нельзя'}, status=400)
-        subscription = UserSubscribe(subscriber=subscriber, target_user=target_user)
-        subscription.save()
-        return Response({'message': 'Подписка создана'}, status=201)
+        subscribe_existence = UserSubscribe.objects.filter(
+            subscriber=subscriber.id,
+            target_user=target_user.id    
+        ).exists()
+
+        if request.method == 'POST':
+            if subscribe_existence is True:
+                return Response(
+                    {'errors': 'Вы уже подписаны на данного автора'},
+                    status=400
+                )
+            if subscriber == target_user:
+                return Response(
+                    {'errors': 'Подписываться на себя нельзя'},
+                    status=400
+                )
+            subscription = UserSubscribe(
+                subscriber=subscriber,
+                target_user=target_user
+            )
+            subscription.save()
+            return Response({'message': 'Подписка создана'}, status=201)
+
+        if request.method == 'DELETE':
+            if subscribe_existence is not True:
+                return Response(
+                    {'errors': 'Вы не подписаны на данного автора'},
+                    status=400
+                )
+            subscription = UserSubscribe.objects.get(
+                subscriber=subscriber,
+                target_user=target_user
+            )
+            subscription.delete()
+            return Response(status=204)
 
 
+    # @action(detail=False, methods=['get'])
+    # def subscriptions(self, request):
+    #     # subscriber = request.user
+    #     # queryset = UserSubscribe.objects.filter(subscriber=subscriber.id)
+    #     # serializer = SubscribeSerializer(queryset, many=True)
+    #     if request.method == 'GET':
+    #         return Response({'test': 'test'})
 
-
-    # @action(
-    #     detail=True,
-    #     methods=['post', 'delete'],
-    # )
-    # def subscribe(self, request, pk):
-    #     subscriber = request.user
-    #     target_user = get_object_or_404(User, id=pk)
-        
-    #     if request.method == 'POST':
-    #         serializer = SubscribeSerializer(
-    #             target_user,
-    #             data=request.data,
-    #             context={'request': request}
-    #         )
-    #         serializer.is_valid(raise_exception=True)
-    #         subscribe = UserSubscribe.objects.create(
-    #             subscriber=subscriber,
-    #             target_user=target_user
-    #         )
-    #         subscribe.save()
-    #         return Response(serializer.data)
+    @action(detail=False, methods=['get'])
+    def subscriptions(self, request):
+        return Response({'test: test'})
 
