@@ -41,7 +41,14 @@ class CustomUserViewSet(UserViewSet):
                 target_user=target_user
             )
             subscription.save()
-            return Response({'message': 'Подписка создана'}, status=201)
+            serializer = SubscribeSerializer(
+                subscriber,
+                data = request.data,
+                context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+
+            return Response(serializer.data, status=201)
 
         if request.method == 'DELETE':
             if subscribe_existence is not True:
