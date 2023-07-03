@@ -8,7 +8,6 @@ from api.validators import validate_username
 class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
-
     username = models.CharField(
         verbose_name='Логин пользователя',
         help_text='Укажите логин',
@@ -39,13 +38,13 @@ class User(AbstractUser):
         null=False,
     )
 
-    password = models.CharField(
-        verbose_name='Пароль',
-        help_text='Введите пароль',
-        max_length=128,
-        blank=False,
-        null=False
-    )
+    # password = models.CharField(
+    #     verbose_name='Пароль',
+    #     help_text='Введите пароль',
+    #     max_length=128,
+    #     blank=False,
+    #     null=False
+    # )
 
     class Meta:
         verbose_name = 'Пользователь'

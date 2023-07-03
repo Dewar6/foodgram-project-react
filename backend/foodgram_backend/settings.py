@@ -125,9 +125,9 @@ DJOSER = {
     'LOGIN_FIELD':'email',
     'SEND_ACTIVATION_EMAIL':False,
     'SERIALIZERS':{
-        'user':'users.serializers.UserSerializer',
-        'user_create':'users.serializers.UserSerializer',
-        'current_user':'users.serializers.UserSerializer',
+        'user':'users.serializers.CustomUserSerializer',
+        'user_create':'users.serializers.CustomUserCreateSerializer',
+        'current_user':'users.serializers.CustomUserSerializer',
     },
     'PERMISSIONS':{
         'user':['djoser.permissions.CurrentUserOrAdminOrReadOnly'],

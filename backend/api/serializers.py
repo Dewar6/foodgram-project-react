@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
 
-from users.serializers import  User, UserSerializer
+from users.serializers import  User, CustomUserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -86,7 +86,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True
     )
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -205,57 +205,3 @@ class FavoriteRecipeSerializer(serializers.Serializer):
         serializers = RecipeSerializer(recipe)
         return serializers.data.get('cooking_time')
 
-
-
-
-        
-#class ProfileSerializer(serializers.ModelSerializer):
-#     is_subscribed = serializers.BooleanField(
-#         required=True,
-#     )
-#     username = serializers.CharField(
-#         required=True,
-#         max_length=150,
-#         validators=[validate_username,
-#         UniqueValidator(queryset=User.objects.all())]
-#     )
-#     email = serializers.EmailField(
-#         required=True,
-#         max_length=255,
-#         validators=[UniqueValidator(queryset=User.objects.all())]
-#     )
-
-#     class Meta:
-#         model = User
-#         fields = (
-#             'email',
-#             'id',
-#             'username',
-#             'first_name',
-#             'last_name',
-#             'is_subscribed'
-#         )
-
-#     def get_is_subscribed(self, obj):
-#         user = self.context['request'].user
-#         return (
-#             UserSubscription.objects.filter(subscriber=user).exists()
-#             or FavoriteRecipe.objects.filter(user=user).exists()
-#         )
-
-
-#class SetPasswordSerializer(serializers.Serializer):
-#     current_password = serializers.CharField(
-#         required=True,
-#         max_length=128
-#     )
-#     new_password = serializers.CharField(
-#         required=True,
-#         max_length=128
-#     )
-
-#     def validate_current_password(self, value):
-#         user = self.context['request'].user
-#         if not user.check_password(value):
-#             raise serializers.ValidationError('Неверный текущий пароль')
-#         return value

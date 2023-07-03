@@ -7,12 +7,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from api.permissions import CreateAnyOtherAuthenticatedPermission
 from users.models import User, UserSubscribe
-from users.serializers import SubscribeSerializer, UserSerializer
+from users.serializers import SubscribeSerializer, CustomUserSerializer
 
 
-class UserViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     permission_classes = [CreateAnyOtherAuthenticatedPermission,]
 
 

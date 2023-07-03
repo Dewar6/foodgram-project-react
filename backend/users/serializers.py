@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.exceptions import ValidationError
@@ -10,9 +11,8 @@ from api.validators import validate_username
 
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
-
 
     class Meta:
         model = User
@@ -22,13 +22,9 @@ class UserSerializer(serializers.ModelSerializer):
             'username',
             'first_name',
             'last_name',
-            'password',
             'is_subscribed',
         )
         read_only_fields = ('is_subscribed',)
-        extra_kwargs = {
-            'is_subscribed': {'read_only': True},
-        }
 
 
     def get_is_subscribed(self, obj):
@@ -38,41 +34,25 @@ class UserSerializer(serializers.ModelSerializer):
         return obj.subscribers.filter(subscriber=request.user).exists()
 
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        if self.context['view'].action == 'create' or 'get':
-            data = {
-                'email': instance.email,
-                'id': instance.id,
-                'username': instance.username,
-                'first_name': instance.first_name,
-                'last_name': instance.last_name,
-            }
-        return data
+class CustomUserCreateSerializer(UserCreateSerializer):
 
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
+        
 
-    def create(self, validated_data):
-        try:
-            user = User(
-                email=validated_data["email"],
-                username=validated_data["username"],
-                first_name=validated_data["first_name"],
-                last_name=validated_data["last_name"],
-            )
-            user.set_password(validated_data["password"])
-            user.save()
-        except IntegrityError:
-            error_message = 'Пользователь с таким именем или адресом электронной почты уже существует.'
-            raise serializers.ValidationError(error_message)
-        return user
-
-
-class SubscribeSerializer(UserSerializer):
+class SubscribeSerializer(CustomUserSerializer):
     # recipe_count = SerializerMethodField()
     # recipes = SerializerMethodField()
 
-    class Meta(UserSerializer.Meta):
-        fields = UserSerializer.Meta.fields
+    class Meta(CustomUserSerializer.Meta):
+        fields = CustomUserSerializer.Meta.fields
         read_only_fields = (
             'email',
             'username'
