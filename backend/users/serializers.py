@@ -58,21 +58,21 @@ class SubscribeSerializer(CustomUserSerializer):
             'username'
         )
 
-        # def validate(self, data):
-        #     subscriber = self.instance
-        #     target_user = self.context.get('request').user
-        #     if UserSubscribe.objects.filter(
-        #         subscriber=subscriber.id,
-        #         target_user=target_user.id
-        #     ).exists():
-        #         raise ValidationError(
-        #             detail='Вы уже подписаны на данного автора'
-        #         )
-        #     if target_user == subscriber:
-        #         raise ValidationError(
-        #             detail='Подписываться на себя нельзя'
-        #         )
-        #     return data
+    # def validate(self, data):
+    #     subscriber = self.instance
+    #     target_user = self.context.get('request').user
+    #     if UserSubscribe.objects.filter(
+    #         subscriber=subscriber.id,
+    #         target_user=target_user.id
+    #     ).exists():
+    #         raise ValidationError(
+    #             detail='Вы уже подписаны на данного автора'
+    #         )
+    #     if target_user == subscriber:
+    #         raise ValidationError(
+    #             detail='Подписываться на себя нельзя'
+    #         )
+    #     return data
 
 
 

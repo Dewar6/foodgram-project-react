@@ -13,7 +13,7 @@ from api.permissions import (AdminOrReadOnlyPermission,
                              CreateAnyOtherAuthenticatedPermission)
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, ShoppingCartSerializer,
-                             FavoriteRecipeSerializer,                             )
+                             FavoriteRecipeSerializer,)
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
                             FavoriteRecipe)
 
