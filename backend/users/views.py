@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from rest_framework import viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,16 +10,16 @@ from users.models import User, UserSubscribe
 from users.serializers import SubscribeSerializer, UserSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [CreateAnyOtherAuthenticatedPermission,]
 
 
     @action(detail=True, methods=['post', 'delete'])
-    def subscribe(self, request, pk):
+    def subscribe(self, request, id):
         subscriber = request.user
-        target_user = get_object_or_404(User, id=pk)
+        target_user = get_object_or_404(User, id=id)
         subscribe_existence = UserSubscribe.objects.filter(
             subscriber=subscriber.id,
             target_user=target_user.id    
@@ -56,15 +57,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=204)
 
 
-    # @action(detail=False, methods=['get'])
-    # def subscriptions(self, request):
-    #     # subscriber = request.user
-    #     # queryset = UserSubscribe.objects.filter(subscriber=subscriber.id)
-    #     # serializer = SubscribeSerializer(queryset, many=True)
-    #     if request.method == 'GET':
-    #         return Response({'test': 'test'})
-
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
-        return Response({'test: test'})
+        subscriber = request.user
+        queryset = UserSubscribe.objects.filter(subscriber=subscriber.id)
+        serializer = SubscribeSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 
