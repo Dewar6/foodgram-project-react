@@ -1,5 +1,6 @@
+from django.db import IntegrityError
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets, serializers, generics
+from rest_framework import filters, permissions, viewsets, serializers, generics, status
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
 from rest_framework.permissions import (IsAuthenticatedOrReadOnly, AllowAny,
                                         IsAuthenticated)
@@ -30,6 +31,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
 
     # def create(self, request, *args, **kwargs):
     #     serializer = self.get_serializer(data=request.data)

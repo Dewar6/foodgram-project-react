@@ -30,7 +30,7 @@ class RecipeForm(forms.ModelForm):
         fields = '__all__'
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name', 'color_code', 'slug',)
+    list_display = ('name', 'color', 'slug',)
 
 
 class RecipeAdmin(admin.ModelAdmin):

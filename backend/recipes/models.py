@@ -1,7 +1,7 @@
 from api.validators import color_validator
 from django.db import models
-
 from users.models import User
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -35,7 +35,7 @@ class Tag(models.Model):
         db_index=True,
     )
 
-    color_code = models.CharField(
+    color = models.CharField(
         max_length=7,
         validators=[color_validator],
         blank=False,
@@ -106,22 +106,14 @@ class Recipe(models.Model):
         blank=False,
         null=False,
     )
-    favorite_recipes = models.ManyToManyField(
-        User,
-        through='FavoriteRecipe',
-        related_name='favorite_recipes',
-        blank=True,
-        null=True,
-    )
-    in_shopping_cart = models.ManyToManyField(
-        'recipes.ShoppingCart',
-        related_name='recipes_in_shopping_cart',
-        blank=True,
-        null=True,
-    )
 
     class Meta:
-        unique_together = ('author', 'name')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'name'],
+                name = 'unique_recipe'
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -130,11 +122,8 @@ class Recipe(models.Model):
         return self.favorite_by.count()
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
-    def is_favorited(self, user):
-        return self.favorite_recipes.filter(id=user.id).exists()
-
-    def is_in_shopping_cart(self, user):
-        return self.shopping_cart_recipes.filter(recipe=self, user=user).exists()
+    # def is_favorited(self, user):
+    #     return self.favorite_recipes.filter(id=user.id).exists()
 
 
 class IngredientAmount(models.Model):
@@ -180,42 +169,36 @@ class FavoriteRecipe(models.Model):
         User,
         verbose_name='Пользователь',
         on_delete=models.CASCADE,
-        related_name='favorite_recipes_favorite'
     )
     recipe = models.ForeignKey(
         Recipe,
         verbose_name='Рецепт',
         on_delete=models.CASCADE,
-        related_name='favorite_by'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name = 'unique_favorite'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user} подписан на {self.recipe}'
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shopping_carts'
+        # related_name='shopping_cart_user'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shopping_cart_recipes'
+        # related_name='shopping_cart_recipes'
     )
-    name = models.CharField(
-        max_length=256,
-        verbose_name='Список покупок',
-        blank=False,
-        null=False,
-    )
-    image = models.ImageField(
-        verbose_name='Фотография блюда',
-        upload_to='images/',
-        blank=False,
-        null=False,    
-    )
-    cooking_time = models.PositiveSmallIntegerField(
-        verbose_name='Время приготовления блюда',
-        null=False,
-        blank=False,
-    )
+
 
 

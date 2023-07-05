@@ -42,12 +42,12 @@ class CustomUserViewSet(UserViewSet):
             )
             subscription.save()
             serializer = SubscribeSerializer(
-                subscriber,
+                target_user,
                 data = request.data,
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-
+            serializer.save()
             return Response(serializer.data, status=201)
 
         if request.method == 'DELETE':
