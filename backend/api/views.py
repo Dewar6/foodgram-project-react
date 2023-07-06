@@ -13,7 +13,8 @@ from api.permissions import (AdminOrReadOnlyPermission,
                              IsAdminOrSuperUser,
                              CreateAnyOtherAuthenticatedPermission)
 from api.serializers import (IngredientSerializer, TagSerializer,
-                             RecipeSerializer, ShoppingCartSerializer,
+                             RecipeSerializer, RecipeCreateSerializer,
+                             ShoppingCartSerializer,
                              FavoriteRecipeSerializer,)
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
                             FavoriteRecipe)
@@ -29,22 +30,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     filterset_class = RecipesFilter
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     recipe = serializer.save(author=request.user)
-    #     image = request.data.get('image')
-    #     recipe.image.save(image.name, image, save=True)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(serializer.data)
-
-    # def perform_create(self, serializer):
-    #     amount = self.request.data.get('amount')
-    #     serializer.save(amount=amount)
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
