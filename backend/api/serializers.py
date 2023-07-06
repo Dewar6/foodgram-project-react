@@ -175,6 +175,18 @@ class RecipeSerializer(serializers.ModelSerializer):
     #     user = self.context['request'].user
     #     return obj.is_in_shopping_cart(user)
 
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
+
+
 
 class ShoppingCartSerializer(serializers.Serializer):
     image = serializers.SerializerMethodField()

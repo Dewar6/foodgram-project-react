@@ -58,10 +58,10 @@ class SubscribeSerializer(CustomUserSerializer):
 
 
     def get_recipes(self, obj):
-        from api.serializers import RecipeSerializer
+        from api.serializers import SubscribeRecipeSerializer
 
         recipes = Recipe.objects.filter(author=obj.id)
-        serializer = RecipeSerializer(
+        serializer = SubscribeRecipeSerializer(
             recipes,
             many = True,
             read_only = True
