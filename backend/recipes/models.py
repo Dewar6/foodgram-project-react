@@ -59,7 +59,7 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE,
-        related_name='recipe',
+        # related_name='recipe',
         blank=False,
         null=False,
     )

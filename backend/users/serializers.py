@@ -26,7 +26,6 @@ class CustomUserSerializer(UserSerializer):
         read_only_fields = ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
-        print(obj)
         return obj.subscribers.filter(target_user=obj.id).exists()
 
 

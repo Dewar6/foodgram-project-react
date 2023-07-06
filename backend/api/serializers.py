@@ -40,11 +40,16 @@ class IngredientAmountSerializer(IngredientSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(),
     )
+    name = serializers.CharField(source='ingredient.name')
+    measurement_unit = serializers.CharField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = IngredientAmount
         fields = (
             'id',
+            'name',
+            'measurement_unit',
             'amount',
         )
 
@@ -76,6 +81,9 @@ class ImageField(serializers.Field):
         return value.url
 
 
+
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     ingredients = IngredientAmountSerializer(
@@ -84,8 +92,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=True
     )
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True
+        many=True,
+        queryset=Tag.objects.all()
     )
     author = CustomUserSerializer(read_only=True)
     # is_favorited = serializers.SerializerMethodField()
