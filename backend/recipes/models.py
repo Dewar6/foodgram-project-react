@@ -120,11 +120,9 @@ class Recipe(models.Model):
 
     def get_favorite_count(self):
         favorite_count = FavoriteRecipe.objects.filter(recipe=self).count()
+        print(self)
         return favorite_count
     get_favorite_count.short_description = 'Число добавлений в избранное'
-
-    # def is_favorited(self, user):
-    #     return self.favorite_recipes.filter(id=user.id).exists()
 
 
 class IngredientAmount(models.Model):
@@ -193,13 +191,22 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        # related_name='shopping_cart_user'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        # related_name='shopping_cart_recipes'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name = 'unique_ShoppingCart'
+            )
+        ]
+
+    def __str__(self):
+        return (f'рецепт {self.recipe} в списке покупок '
+                f'пользователя {self.user}')
 
 

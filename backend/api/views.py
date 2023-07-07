@@ -54,7 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                 status=status.HTTP_400_BAD_REQUEST)
 
             FavoriteRecipe.objects.create(
-                user = request.user,
+                user = user,
                 recipe = recipe
             )
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
@@ -65,12 +65,49 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if not favorite_exists:
                 return Response('Данного рецепта нет у вас в избранном',
                                 status=status.HTTP_400_BAD_REQUEST)
+
             FavoriteRecipe.objects.filter(
-                user = request.user,
+                user = user,
                 recipe = recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=True,
+        methods=('POST', 'DELETE')
+    )
+    def shopping_cart(self, request, pk):
+        recipe = Recipe.objects.get(id=pk)
+        user = request.user
+        shopping_cart_exists = ShoppingCart.objects.filter(
+            user=user,
+            recipe=recipe
+        ).exists()
+
+        if request.method == 'POST':
+
+            if shopping_cart_exists:
+                return Response('Данный рецепт уже в списке покупок',
+                                status=status.HTTP_400_BAD_REQUEST)
+        
+            ShoppingCart.objects.create(
+                user = user,
+                recipe = recipe
+            )
+            serializer = SubscribeFavoriteRecipeSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+        if request.method == 'DELETE':
+
+            if not shopping_cart_exists:
+                return Response('Данного рецепта нет у вас в списке покупок')
+
+            ShoppingCart.objects.filter(
+                user = user,
+                recipe = recipe
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
@@ -78,16 +115,16 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     filterset_class = IngredientsFilter
 
 
-class ShoppingCartViewSet(viewsets.ModelViewSet):
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
+# class ShoppingCartViewSet(viewsets.ModelViewSet):
+#     queryset = ShoppingCart.objects.all()
+#     serializer_class = ShoppingCartSerializer
 
-    def create(self, request, *args, **kwargs):
-        recipe_id = request.data.get('recipe_id')
-        shopping_cart = ShoppingCart.objects.create()
-        recipe = Recipe.objects.get(id=recipe_id)
-        shopping_cart.recipe.add(recipe)
-        serializers = self.get_serializer(shopping_cart)
-        headers = self.get_success_headers(serializers.data)
-        return Response(serializers.data, headers=headers)
+#     def create(self, request, *args, **kwargs):
+#         recipe_id = request.data.get('recipe_id')
+#         shopping_cart = ShoppingCart.objects.create()
+#         recipe = Recipe.objects.get(id=recipe_id)
+#         shopping_cart.recipe.add(recipe)
+#         serializers = self.get_serializer(shopping_cart)
+#         headers = self.get_success_headers(serializers.data)
+#         return Response(serializers.data, headers=headers)
 
