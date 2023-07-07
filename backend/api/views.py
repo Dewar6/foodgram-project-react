@@ -35,6 +35,47 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeSerializer
         return RecipeCreateSerializer
 
+    @action(
+        detail=True,
+        methods=('POST', 'DELETE')
+    )
+    def favorite(self, request, pk):
+        recipe = Recipe.objects.get(id=pk)
+        user = request.user
+        favorite_exists = FavoriteRecipe.objects.filter(
+            user = user,
+            recipe = recipe
+        ).exists()
+
+        if request.method == 'POST':
+
+            if favorite_exists:
+                return Response('Данный рецепт у вас уже в избранном',
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            FavoriteRecipe.objects.create(
+                user = request.user,
+                recipe = recipe
+            )
+            serializer = FavoriteRecipeSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+
+            if not favorite_exists:
+                return Response('Данного рецепта нет у вас в избранном',
+                                status=status.HTTP_400_BAD_REQUEST)
+            FavoriteRecipe.objects.filter(
+                user = request.user,
+                recipe = recipe
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
@@ -56,8 +97,9 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         return Response(serializers.data, headers=headers)
 
 
-class FavoriteViewSet(viewsets.ModelViewSet):
-    queryset = FavoriteRecipe.objects.all()
-    serializer_class = FavoriteRecipeSerializer
+# class FavoriteViewSet(viewsets.ModelViewSet):
+#     queryset = FavoriteRecipe.objects.all()
+#     serializer_class = FavoriteRecipeSerializer
+
 
 

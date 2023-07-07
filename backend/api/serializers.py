@@ -11,7 +11,7 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.response import Response
 from rest_framework.validators import UniqueValidator
 
-from users.serializers import  User, CustomUserSerializer
+from users.serializers import  CustomUserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -105,6 +105,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         ingredients = IngredientAmount.objects.filter(recipe=obj)
         return IngredientAmountSerializer(ingredients, many=True).data
+
+    # def get_id_favorited(self, obj):
+    #     pass
+
+    # def get_is_in_shopping_cart(self, obj):
+    #     pass
 
     
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -248,26 +254,19 @@ class ShoppingCartSerializer(serializers.Serializer):
         return serializers.data.get('cooking_time')
 
 
-class FavoriteRecipeSerializer(serializers.Serializer):
-    image = serializers.SerializerMethodField()
-    cooking_time = serializers.SerializerMethodField()
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = FavoriteRecipe
+        model = Recipe
         fields = (
             'id',
             'name',
             'image',
             'cooking_time'
         )
-
-    def get_image(self, obj):
-        recipe = obj.recipe
-        serializers = RecipeSerializer(recipe)
-        return serializers.data.get('image')
-
-    def get_cooking_time(self, obj):
-        recipe = obj.recipe
-        serializers = RecipeSerializer(recipe)
-        return serializers.data.get('cooking_time')
-
+        read_only_fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time'
+        )

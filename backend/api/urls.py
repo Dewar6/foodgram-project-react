@@ -3,7 +3,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (RecipeViewSet, TagViewSet, IngredientsViewSet,
-                       ShoppingCartViewSet, FavoriteViewSet,)
+                       ShoppingCartViewSet,)
 
 from users.views import CustomUserViewSet
 
