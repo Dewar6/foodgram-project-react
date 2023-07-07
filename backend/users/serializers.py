@@ -57,12 +57,11 @@ class SubscribeSerializer(CustomUserSerializer):
             'username'
         )
 
-
     def get_recipes(self, obj):
-        from api.serializers import SubscribeRecipeSerializer
-
+        from api.serializers import SubscribeFavoriteRecipeSerializer
+        
         recipes = Recipe.objects.filter(author=obj.id)
-        serializer = SubscribeRecipeSerializer(
+        serializer = SubscribeFavoriteRecipeSerializer(
             recipes,
             many = True,
             read_only = True

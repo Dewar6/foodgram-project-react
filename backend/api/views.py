@@ -15,7 +15,7 @@ from api.permissions import (AdminOrReadOnlyPermission,
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
                              ShoppingCartSerializer,
-                             FavoriteRecipeSerializer,)
+                             SubscribeFavoriteRecipeSerializer)
 from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
                             FavoriteRecipe)
 
@@ -57,7 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user = request.user,
                 recipe = recipe
             )
-            serializer = FavoriteRecipeSerializer(recipe)
+            serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
@@ -70,11 +70,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe = recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-
-
-
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
@@ -95,11 +90,4 @@ class ShoppingCartViewSet(viewsets.ModelViewSet):
         serializers = self.get_serializer(shopping_cart)
         headers = self.get_success_headers(serializers.data)
         return Response(serializers.data, headers=headers)
-
-
-# class FavoriteViewSet(viewsets.ModelViewSet):
-#     queryset = FavoriteRecipe.objects.all()
-#     serializer_class = FavoriteRecipeSerializer
-
-
 

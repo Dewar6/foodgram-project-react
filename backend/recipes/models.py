@@ -119,7 +119,8 @@ class Recipe(models.Model):
         return self.name
 
     def get_favorite_count(self):
-        return self.favorite_by.count()
+        favorite_count = FavoriteRecipe.objects.filter(recipe=self).count()
+        return favorite_count
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
     # def is_favorited(self, user):

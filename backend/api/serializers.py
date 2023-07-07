@@ -218,7 +218,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             context={'request' : self.context.get('request')}
         ).data
 
-class SubscribeRecipeSerializer(serializers.ModelSerializer):
+
+class SubscribeFavoriteRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
@@ -252,21 +253,3 @@ class ShoppingCartSerializer(serializers.Serializer):
         recipe = obj.recipe
         serializers = RecipeSerializer(recipe)
         return serializers.data.get('cooking_time')
-
-
-class FavoriteRecipeSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
-        read_only_fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time'
-        )
