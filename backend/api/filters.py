@@ -16,22 +16,20 @@ class IngredientsFilter(FilterSet):
     )
 
     class Meta:
-        models = Ingredient
-        fields = '__all__'
+        model = Ingredient
+        fields = ('name',)
 
 
 class RecipesFilter(FilterSet):
-    # favorite = 
-    author = CharFilter(
-        field_name='author',
+    contains_name = CharFilter(
+        field_name='name',
         lookup_expr='icontains',
-    )
-    # shopping_list = 
-    tag = CharFilter(
-        field_name='tag__slug',
-        lookup_expr='icontains',
+        label='Поиск по вхождению в произвольном месте'
     )
 
     class Meta:
-        models = Recipe
-        fields = '__all__'
+        model = Recipe
+        fields = (
+            'name',
+        )
+

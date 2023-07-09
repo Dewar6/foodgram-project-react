@@ -4,8 +4,10 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
-from recipes.models import Recipe, Tag, Ingredient, IngredientAmount
+from recipes.models import (Recipe, Tag, Ingredient, IngredientAmount,
+                            FavoriteRecipe, ShoppingCart)
 from users.models import User
+
 
 class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
@@ -36,7 +38,7 @@ class TagAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeIngredientInline]
     list_display = ('name', 'author',)
-    search_fields = ('author', 'name', 'tag',)
+    search_fields = ('name',)
     readonly_fields = ('get_favorite_count',)
     form = RecipeForm
     filter_horizontal = ('tags',)
@@ -51,7 +53,21 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class FavoriteRecipeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe')
+    list_filter = ('user', 'recipe')
+    search_fields = ('user', 'recipe')
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'user')
+    list_filter = ('recipe', 'user')
+    search_fields = ('user',)
+
+
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(FavoriteRecipe, FavoriteRecipeAdmin)
+admin.site.register(ShoppingCart, ShoppingCartAdmin)

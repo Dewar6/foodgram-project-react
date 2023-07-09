@@ -1,4 +1,5 @@
 from django.db import IntegrityError
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, serializers, generics, status
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
@@ -16,19 +17,27 @@ from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
                              ShoppingCartSerializer,
                              SubscribeFavoriteRecipeSerializer)
-from recipes.models import (Ingredient, Tag, Recipe, ShoppingCart,
-                            FavoriteRecipe)
+from recipes.models import (Ingredient, IngredientAmount, Tag, Recipe,
+                            ShoppingCart, FavoriteRecipe)
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    permission_classes = (IsAuthenticated,)
     filterset_class = RecipesFilter
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.order_by('-pub_date')
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -72,6 +81,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    # @action(detail=False, methods=['get'])
+    #     def favorites(self, request):
+        
+
     @action(
         detail=True,
         methods=('POST', 'DELETE')
@@ -97,7 +110,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
         if request.method == 'DELETE':
 
             if not shopping_cart_exists:
@@ -109,22 +121,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=False,
+        methods=('GET',)
+    )
+    def download_shopping_cart(self, request):
+        user = request.user
+        queryset = ShoppingCart.objects.filter(user=user)
+        ingredients_result = []
+
+        for obj in queryset:
+            recipe = Recipe.objects.get(id=obj.recipe.id)
+            ingredients = IngredientAmount.objects.filter(recipe=recipe)
+            for ingredient in ingredients:
+                name = ingredient.ingredient.name
+                amount = ingredient.amount
+                measurement_unit = ingredient.ingredient.measurement_unit
+                if len(ingredients_result) == 0:
+                    ingredients_result.append([
+                        name,
+                        amount,
+                        measurement_unit
+                    ])
+                else:
+                    flag = False
+                    for objs in ingredients_result: 
+                        if name == objs[0]:
+                            objs[1] += amount
+                            flag = True
+                            break
+                    if not flag:
+                        ingredients_result.append([
+                            name,
+                            amount,
+                            measurement_unit
+                        ])
+
+        shopping_cart = 'Список покупок:\n'
+        for item in ingredients_result:
+            shopping_cart += f'{item[0]} - {item[1]} {item[2]}\n'
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename=shopping_cart.txt'
+        return response
+
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filterset_class = IngredientsFilter
-
-
-# class ShoppingCartViewSet(viewsets.ModelViewSet):
-#     queryset = ShoppingCart.objects.all()
-#     serializer_class = ShoppingCartSerializer
-
-#     def create(self, request, *args, **kwargs):
-#         recipe_id = request.data.get('recipe_id')
-#         shopping_cart = ShoppingCart.objects.create()
-#         recipe = Recipe.objects.get(id=recipe_id)
-#         shopping_cart.recipe.add(recipe)
-#         serializers = self.get_serializer(shopping_cart)
-#         headers = self.get_success_headers(serializers.data)
-#         return Response(serializers.data, headers=headers)
-
+    permission_classes = (IsAuthenticatedOrReadOnly,)

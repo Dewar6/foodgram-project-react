@@ -78,7 +78,6 @@ class ImageField(serializers.Field):
         return value.url
 
 
-
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
@@ -219,7 +218,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         instance.tags.set(tags)
         return super().update(instance, validated_data)
-    
 
     def to_representation(self, instance):
         return RecipeSerializer(

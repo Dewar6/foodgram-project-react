@@ -59,7 +59,6 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE,
-        # related_name='recipe',
         blank=False,
         null=False,
     )
@@ -106,6 +105,9 @@ class Recipe(models.Model):
         blank=False,
         null=False,
     )
+    pub_date = models.DateTimeField(
+        auto_now_add=True
+    )
 
     class Meta:
         constraints = [
@@ -147,7 +149,7 @@ class IngredientAmount(models.Model):
     )
 
     def __str__(self):
-        return f'{self.ingredient} - {self.amount}'
+        return f'{self.ingredient} - {self.amount} {self.ingredient.measurement_unit}'
 
 
 class TagRecipe(models.Model):

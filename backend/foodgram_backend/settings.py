@@ -1,6 +1,6 @@
-import os.path
-from pathlib import Path
+import os
 
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
 
 SECRET_KEY = 'django-insecure-p&@)_-hj004ly)6sl3mu8l1v_iqlf9vxvl=(t$m8c@pn=ec*33'
 
@@ -26,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -107,10 +106,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated' 
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
     ],
-
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -131,11 +132,7 @@ DJOSER = {
     },
     'PERMISSIONS':{
         'user':['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list':['rest_framework.permissions.AllowAny'],
+        'user_list':['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
 }
-
-EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
-DEFAULT_FROM_EMAIL = 'admin.foodgram@example.com'
 

@@ -63,7 +63,6 @@ class CustomUserViewSet(UserViewSet):
             subscription.delete()
             return Response(status=204)
 
-
     @action(detail=False, methods=['get'])
     def subscriptions(self, request):
         subscriber = request.user
@@ -74,5 +73,8 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return Response(serializer.data)
+
+
+
 
 
