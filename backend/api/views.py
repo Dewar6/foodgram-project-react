@@ -15,7 +15,7 @@ from api.permissions import (AdminOrReadOnlyPermission,
                              CreateAnyOtherAuthenticatedPermission)
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
-                             ShoppingCartSerializer,
+                             ShoppingCartSerializer, FavoriteSerializer, 
                              SubscribeFavoriteRecipeSerializer)
 from recipes.models import (Ingredient, IngredientAmount, Tag, Recipe,
                             ShoppingCart, FavoriteRecipe)
@@ -31,8 +31,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticated,)
-    filterset_class = RecipesFilter
-    filter_backends = [DjangoFilterBackend]
+    # filterset_class = RecipesFilter
+    filterset_fields = ['name', 'tags']
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -81,9 +81,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # @action(detail=False, methods=['get'])
-    #     def favorites(self, request):
-        
+    @action(detail=False, methods=('GET',))
+    def favorites(self, request):
+        user = request.user
+        print(request.user)
+        favorites = FavoriteRecipe.objects.filter(user=user)
+        serializer = FavoriteSerializer(favorites, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=True,
@@ -167,5 +171,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filterset_class = IngredientsFilter
+    #filterset_class = IngredientsFilter
+
     permission_classes = (IsAuthenticatedOrReadOnly,)

@@ -37,14 +37,18 @@ class TagAdmin(admin.ModelAdmin):
 
 class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeIngredientInline]
-    list_display = ('name', 'author',)
-    search_fields = ('name',)
+    list_display = ('name', 'author', 'display_tags')
+    search_fields = ('name', 'author__username', 'tags__name')
     readonly_fields = ('get_favorite_count',)
     form = RecipeForm
-    filter_horizontal = ('tags',)
+
+    def display_tags(self, obj):
+        return ", ".join(tag.name for tag in obj.tags.all())
+    display_tags.short_description = 'Тэги'
 
     def get_favorite_count(self, obj):
-        return obj.favorite_recipe.count()
+        favorite = FavoriteRecipe.objects.filter(recipe=obj)
+        return favorite.count()
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
 

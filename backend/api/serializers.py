@@ -62,7 +62,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-        # read_only_fields = '__all__'
 
 
 class ImageField(serializers.Field):
@@ -260,3 +259,10 @@ class ShoppingCartSerializer(serializers.Serializer):
         recipe = obj.recipe
         serializers = RecipeSerializer(recipe)
         return serializers.data.get('cooking_time')
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FavoriteRecipe
+        fields = '__all__'
