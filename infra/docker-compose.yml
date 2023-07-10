@@ -16,8 +16,7 @@ services:
         - ../frontend/build:/usr/share/nginx/html/
         - ../docs/:/usr/share/nginx/html/api/docs/
         - static:/var/html/static
-        # - media:/var/html/media
-        - media:/var/html/media/images
+        - media:/var/html/media
       extra_hosts:
         - "host.docker.internal:host-gateway"
 

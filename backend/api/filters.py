@@ -1,15 +1,15 @@
-from django_filters.rest_framework import FilterSet, CharFilter
+from django_filters.rest_framework import FilterSet, filters
 
-from recipes.models import Ingredient, Recipe
+from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientsFilter(FilterSet):
-    starts_with_name = CharFilter(
+    starts_with_name = filters.CharFilter(
         field_name='name',
         lookup_expr='istartswith',
         label='Поиск по вхождению в начало названия'
     )
-    contains_name = CharFilter(
+    contains_name = filters.CharFilter(
         field_name='name',
         lookup_expr='icontains',
         label='Поиск по вхождению в произвольном месте'
@@ -21,15 +21,16 @@ class IngredientsFilter(FilterSet):
 
 
 class RecipesFilter(FilterSet):
-    contains_name = CharFilter(
-        field_name='name',
-        lookup_expr='icontains',
-        label='Поиск по вхождению в произвольном месте'
+    tags = filters.ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all()
     )
 
     class Meta:
         model = Recipe
         fields = (
             'name',
+            'author',
         )
 

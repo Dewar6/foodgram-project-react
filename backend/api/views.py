@@ -31,8 +31,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthenticated,)
-    # filterset_class = RecipesFilter
-    filterset_fields = ['name', 'tags']
+    filterset_class = RecipesFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -171,6 +170,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    #filterset_class = IngredientsFilter
-
+    filterset_class = IngredientsFilter
     permission_classes = (IsAuthenticatedOrReadOnly,)
