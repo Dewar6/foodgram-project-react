@@ -8,34 +8,15 @@ class AuthorAndStaffOrReadOnlyPermission(permissions.BasePermission):
         '''Аутентификация создателя объекта'''
         if request.method in permissions.SAFE_METHODS:
             return True
-        return ((request.user == obj.author) or request.user.is_superuser
-                or (request.user.role != User.Role.USER))
+        return ((request.user == obj.author) or request.user.is_superuser)
 
-
-class IsAdminOrSuperUser(permissions.BasePermission):
-    message = (
-        'Получить username может только Админ или суперюзер.'
-    )
-
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated
-                and (request.user.is_superuser
-                     or request.user.role == User.Role.ADMIN))
-
-
-class AdminOrReadOnlyPermission(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return (
-            request.user.is_authenticated
-            and (request.user.role == User.Role.ADMIN)
-        )
 
 class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action == 'create':
             return True
-        else:
-            return permissions.IsAuthenticated().has_permission(request, view)
+        if view.action == 'me':
+            return request.user.is_authenticated
+        elif request.method in permissions.SAFE_METHODS:
+                return True
+

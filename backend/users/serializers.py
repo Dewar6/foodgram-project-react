@@ -23,12 +23,18 @@ class CustomUserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-        read_only_fields = ('is_subscribed',)
+        read_only_fields = (
+            'is_subscribed',
+        )
 
     def get_is_subscribed(self, obj):
-        if obj == self.context.get('request').user:
+        user = self.context.get('request').user
+        if user.is_anonymous:
             return False
-        return obj.subscribers.filter(target_user=obj.id).exists()
+        return UserSubscribe.objects.filter(
+            subscriber=user,
+            target_user=obj.id
+        ).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -54,7 +60,9 @@ class SubscribeSerializer(CustomUserSerializer):
 
         read_only_fields = (
             'email',
-            'username'
+            'username',
+            'first_name',
+            'last_name',
         )
 
     def get_recipes(self, obj):

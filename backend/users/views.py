@@ -15,8 +15,11 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [CreateAnyOtherAuthenticatedPermission,]
 
-
-    @action(detail=True, methods=['post', 'delete'])
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=(IsAuthenticated,)
+    )
     def subscribe(self, request, id):
         subscriber = request.user
         target_user = get_object_or_404(User, id=id)
@@ -73,8 +76,4 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return Response(serializer.data)
-
-
-
-
 

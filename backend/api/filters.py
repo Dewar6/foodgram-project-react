@@ -4,33 +4,31 @@ from recipes.models import Ingredient, Recipe, Tag
 
 
 class IngredientsFilter(FilterSet):
-    starts_with_name = filters.CharFilter(
-        field_name='name',
-        lookup_expr='istartswith',
-        label='Поиск по вхождению в начало названия'
-    )
-    contains_name = filters.CharFilter(
-        field_name='name',
-        lookup_expr='icontains',
-        label='Поиск по вхождению в произвольном месте'
-    )
-
+    name = filters.CharFilter(lookup_expr='istartswith')
+    
     class Meta:
         model = Ingredient
         fields = ('name',)
 
 
 class RecipesFilter(FilterSet):
+    author = filters.NumberFilter(field_name='author')
     tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
         to_field_name='slug',
         queryset=Tag.objects.all()
     )
+    is_favorited = filters.BooleanFilter(field_name='is_favorited')
+    is_in_shopping_cart = filters.BooleanFilter(
+        field_name='is_in_shopping_cart')
+    
 
     class Meta:
         model = Recipe
         fields = (
-            'name',
             'author',
+            'tags',
+            'is_favorited',
+            'is_in_shopping_cart',
         )
 

@@ -9,10 +9,8 @@ from rest_framework.response import Response
 
 
 from api.filters import IngredientsFilter, RecipesFilter
-from api.permissions import (AdminOrReadOnlyPermission,
-                             AuthorAndStaffOrReadOnlyPermission,
-                             IsAdminOrSuperUser,
-                             CreateAnyOtherAuthenticatedPermission)
+from api.permissions import (CreateAnyOtherAuthenticatedPermission,
+                             AuthorAndStaffOrReadOnlyPermission)
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
                              ShoppingCartSerializer, FavoriteSerializer, 
@@ -30,7 +28,7 @@ class TagViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly, AuthorAndStaffOrReadOnlyPermission,)
     filterset_class = RecipesFilter
 
     def get_queryset(self):
@@ -45,7 +43,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('POST', 'DELETE')
+        methods=('POST', 'DELETE'),
     )
     def favorite(self, request, pk):
         recipe = Recipe.objects.get(id=pk)
@@ -58,8 +56,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
 
             if favorite_exists:
-                return Response('Данный рецепт у вас уже в избранном',
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'errors' :'Данный рецепт у вас уже в избранном'},
+                    status=status.HTTP_400_BAD_REQUEST
+            )
 
             FavoriteRecipe.objects.create(
                 user = user,
@@ -71,8 +71,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
 
             if not favorite_exists:
-                return Response('Данного рецепта нет у вас в избранном',
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'errors' :'Данного рецепта нет у вас в избранном'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             FavoriteRecipe.objects.filter(
                 user = user,
@@ -83,7 +85,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=('GET',))
     def favorites(self, request):
         user = request.user
-        print(request.user)
         favorites = FavoriteRecipe.objects.filter(user=user)
         serializer = FavoriteSerializer(favorites, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

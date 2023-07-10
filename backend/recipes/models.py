@@ -28,8 +28,8 @@ class Ingredient(models.Model):
 class Tag(models.Model):
     name = models.CharField(
         max_length=256,
-        verbose_name='Тэг',
-        help_text='Введите название тэга',
+        verbose_name='Тег',
+        help_text='Введите название тега',
         blank=False,
         null=False,
         db_index=True,
@@ -44,7 +44,7 @@ class Tag(models.Model):
     slug = models.SlugField(
         max_length=50,
         verbose_name='Страница тега',
-        help_text=('Введите адрес страницы тэга'),
+        help_text=('Введите адрес страницы тега'),
         blank=False,
         null=False,
         unique=True,
@@ -65,7 +65,7 @@ class Recipe(models.Model):
     name = models.CharField(
         verbose_name='Название рецепта',
         help_text='Введите название рецепта',
-        max_length=255,
+        max_length=200,
         blank=False,
         null=False,
         db_index=True,
@@ -95,17 +95,17 @@ class Recipe(models.Model):
         Tag,
         verbose_name='Тэги',
         help_text='Выберите тэги',
-        through='TagRecipe',
         blank=False,
         null=False,
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления блюда (мин)',
         help_text='Введите время приготовления блюда',
         blank=False,
         null=False,
     )
     pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         auto_now_add=True
     )
 

@@ -3,6 +3,7 @@ import base64
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
+from django.core.exceptions import PermissionDenied
 from django.db import transaction, IntegrityError
 from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
                             ShoppingCart, Tag, TagRecipe, IngredientAmount)
@@ -105,21 +106,23 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        favorite = FavoriteRecipe.objects.filter(
+        if user.is_anonymous:
+            return False
+        return FavoriteRecipe.objects.filter(
             user=user,
             recipe=obj,
         ).exists()
-        return favorite
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        is_in_shopping_cart = ShoppingCart.objects.filter(
+        if user.is_anonymous:
+            return False
+        return ShoppingCart.objects.filter(
             user = user,
             recipe=obj
         ).exists()
-        return is_in_shopping_cart
 
-    
+
 class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     ingredients = AddIngredientSerializer(many=True)
@@ -128,6 +131,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all()
     )
     author = CustomUserSerializer(read_only=True)
+    cooking_time = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = Recipe
@@ -145,12 +149,17 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         author = self.context['request'].user
         name = data.get('name')
+        amount = data['ingredients'][0]['amount']
+        
+        if amount < 1:
+            raise serializers.ValidationError(
+                {'amount':
+                'Убедитесь, что это значение больше либо равно 1.'}
+            )
 
         if self.instance is not None:
             if self.instance.author != author:
-                raise serializers.ValidationError(
-                    {'error': 'Это не ваш рецепт'}
-                )
+                raise PermissionDenied
         else:
             if Recipe.objects.filter(author=author, name=name).exists():
                 raise serializers.ValidationError(
