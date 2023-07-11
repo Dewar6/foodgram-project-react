@@ -1,9 +1,6 @@
-import os
-
 from pathlib import Path
 
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -64,7 +61,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -94,8 +90,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
@@ -116,23 +110,24 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': [
+        'rest_framework.pagination.PageNumberPagination',
+    ],
     'PAGE_SIZE': 6,
 
 }
 
 DJOSER = {
     'HIDE_USERS': False,
-    'LOGIN_FIELD':'email',
-    'SEND_ACTIVATION_EMAIL':False,
-    'SERIALIZERS':{
-        'user':'users.serializers.CustomUserSerializer',
-        'user_create':'users.serializers.CustomUserCreateSerializer',
-        'current_user':'users.serializers.CustomUserSerializer',
+    'LOGIN_FIELD': 'email',
+    'SEND_ACTIVATION_EMAIL': False,
+    'SERIALIZERS': {
+        'user': 'users.serializers.CustomUserSerializer',
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
+        'current_user': 'users.serializers.CustomUserSerializer',
     },
-    'PERMISSIONS':{
-        'user':['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list':['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+    'PERMISSIONS': {
+        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
 }
-

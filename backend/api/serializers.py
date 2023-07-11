@@ -1,18 +1,15 @@
 import base64
 
+from django.core.exceptions import PermissionDenied
+from django.core.files.base import ContentFile
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from django.core.files.base import ContentFile
-from django.core.exceptions import PermissionDenied
-from django.db import transaction, IntegrityError
-from recipes.models import (FavoriteRecipe, Ingredient, Recipe,
-                            ShoppingCart, Tag, TagRecipe, IngredientAmount)
-from rest_framework import serializers, status
-from rest_framework.relations import SlugRelatedField
-from rest_framework.response import Response
-from rest_framework.validators import UniqueValidator
+from rest_framework import serializers
 
-from users.serializers import  CustomUserSerializer
+from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
+                            Recipe, ShoppingCart, Tag, TagRecipe)
+from users.serializers import CustomUserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -27,7 +24,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'id',
             'name',
-            'measurement_unit',            
+            'measurement_unit',
         )
 
 
@@ -45,6 +42,7 @@ class IngredientAmountSerializer(IngredientSerializer):
             'measurement_unit',
             'amount',
         )
+
 
 class AddIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
@@ -118,7 +116,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
         return ShoppingCart.objects.filter(
-            user = user,
+            user=user,
             recipe=obj
         ).exists()
 
@@ -150,11 +148,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         author = self.context['request'].user
         name = data.get('name')
         amount = data['ingredients'][0]['amount']
-        
+
         if amount < 1:
             raise serializers.ValidationError(
                 {'amount':
-                'Убедитесь, что это значение больше либо равно 1.'}
+                 'Убедитесь, что это значение больше либо равно 1.'}
             )
 
         if self.instance is not None:
@@ -164,14 +162,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             if Recipe.objects.filter(author=author, name=name).exists():
                 raise serializers.ValidationError(
                     {'error':
-                    'Рецепт с таким названием уже существует у вас'}
+                     'Рецепт с таким названием уже существует у вас'}
                 )
 
         ingredients = self.initial_data.get('ingredients')
         ingredient_objects = []
         for ingredient in ingredients:
             ingredient = get_object_or_404(Ingredient,
-                                        id=ingredient['id'])
+                                           id=ingredient['id'])
             ingredient_objects.append(ingredient)
         data['ingredients'] = ingredients
         return data
@@ -192,13 +190,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ingredient_amount = IngredientAmount.objects.create(
                 recipe=recipe,
                 ingredient=ingredient_obj,
-                amount = amount
+                amount=amount
             )
             ingredient_amount.save()
 
         for tag in tags:
             TagRecipe.objects.create(recipe=recipe, tag=tag)
-            
+
         recipe.tags.set(tags)
         return recipe
 
@@ -230,7 +228,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return RecipeSerializer(
             instance,
-            context={'request' : self.context.get('request')}
+            context={'request': self.context.get('request')}
         ).data
 
 

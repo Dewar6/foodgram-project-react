@@ -1,22 +1,17 @@
-from django.db import IntegrityError
 from django.http import HttpResponse
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets, serializers, generics, status
-from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
-from rest_framework.permissions import (IsAuthenticatedOrReadOnly, AllowAny,
-                                        IsAuthenticated)
+from rest_framework import (status, viewsets)
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-
 from api.filters import IngredientsFilter, RecipesFilter
-from api.permissions import (CreateAnyOtherAuthenticatedPermission,
-                             AuthorAndStaffOrReadOnlyPermission)
-from api.serializers import (IngredientSerializer, TagSerializer,
-                             RecipeSerializer, RecipeCreateSerializer,
-                             ShoppingCartSerializer, FavoriteSerializer, 
-                             SubscribeFavoriteRecipeSerializer)
-from recipes.models import (Ingredient, IngredientAmount, Tag, Recipe,
-                            ShoppingCart, FavoriteRecipe)
+from api.permissions import AuthorAndStaffOrReadOnlyPermission
+from api.serializers import (FavoriteSerializer, IngredientSerializer,
+                             RecipeCreateSerializer, RecipeSerializer,
+                             SubscribeFavoriteRecipeSerializer,
+                             TagSerializer)
+from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
+                            Recipe, ShoppingCart, Tag)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -28,7 +23,8 @@ class TagViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, AuthorAndStaffOrReadOnlyPermission,)
+    permission_classes = (IsAuthenticatedOrReadOnly,
+                          AuthorAndStaffOrReadOnlyPermission,)
     filterset_class = RecipesFilter
 
     def get_queryset(self):
@@ -49,21 +45,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = Recipe.objects.get(id=pk)
         user = request.user
         favorite_exists = FavoriteRecipe.objects.filter(
-            user = user,
-            recipe = recipe
+            user=user,
+            recipe=recipe
         ).exists()
 
         if request.method == 'POST':
 
             if favorite_exists:
                 return Response(
-                    {'errors' :'Данный рецепт у вас уже в избранном'},
+                    {'errors': 'Данный рецепт у вас уже в избранном'},
                     status=status.HTTP_400_BAD_REQUEST
-            )
+                )
 
             FavoriteRecipe.objects.create(
-                user = user,
-                recipe = recipe
+                user=user,
+                recipe=recipe
             )
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -72,13 +68,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
             if not favorite_exists:
                 return Response(
-                    {'errors' :'Данного рецепта нет у вас в избранном'},
+                    {'errors': 'Данного рецепта нет у вас в избранном'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
             FavoriteRecipe.objects.filter(
-                user = user,
-                recipe = recipe
+                user=user,
+                recipe=recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -106,10 +102,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             if shopping_cart_exists:
                 return Response('Данный рецепт уже в списке покупок',
                                 status=status.HTTP_400_BAD_REQUEST)
-        
+
             ShoppingCart.objects.create(
-                user = user,
-                recipe = recipe
+                user=user,
+                recipe=recipe
             )
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -120,8 +116,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 return Response('Данного рецепта нет у вас в списке покупок')
 
             ShoppingCart.objects.filter(
-                user = user,
-                recipe = recipe
+                user=user,
+                recipe=recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -149,7 +145,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     ])
                 else:
                     flag = False
-                    for objs in ingredients_result: 
+                    for objs in ingredients_result:
                         if name == objs[0]:
                             objs[1] += amount
                             flag = True
@@ -165,8 +161,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for item in ingredients_result:
             shopping_cart += f'{item[0]} - {item[1]} {item[2]}\n'
         response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename=shopping_cart.txt'
+        response['Content-Disposition'] = (
+            'attachment; filename=shopping_cart.txt')
         return response
+
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()

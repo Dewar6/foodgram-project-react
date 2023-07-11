@@ -16,7 +16,6 @@ def validate_username(value):
     return value
 
 
-
 color_validator = RegexValidator(
     regex='^#[A-Fa-f0-9]{6}$',
     message='Цветовой код должен быть в формате HEX (например, #FFFFFF).'

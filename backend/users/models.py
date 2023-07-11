@@ -1,8 +1,6 @@
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-
 from api.validators import validate_username
+from django.contrib.auth.models import AbstractUser
+from django.db import models
 
 
 class User(AbstractUser):
@@ -39,7 +37,6 @@ class User(AbstractUser):
         blank=False,
         null=False,
     )
-
 
     class Meta:
         verbose_name = 'Пользователь'

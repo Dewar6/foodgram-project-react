@@ -1,5 +1,4 @@
 from rest_framework import permissions
-from users.models import User
 
 
 class AuthorAndStaffOrReadOnlyPermission(permissions.BasePermission):
@@ -18,5 +17,4 @@ class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
         if view.action == 'me':
             return request.user.is_authenticated
         elif request.method in permissions.SAFE_METHODS:
-                return True
-
+            return True

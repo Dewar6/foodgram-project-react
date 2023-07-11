@@ -1,13 +1,11 @@
+from api.permissions import CreateAnyOtherAuthenticatedPermission
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import viewsets, generics
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-
-from api.permissions import CreateAnyOtherAuthenticatedPermission
 from users.models import User, UserSubscribe
-from users.serializers import SubscribeSerializer, CustomUserSerializer
+from users.serializers import CustomUserSerializer, SubscribeSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -25,7 +23,7 @@ class CustomUserViewSet(UserViewSet):
         target_user = get_object_or_404(User, id=id)
         subscribe_existence = UserSubscribe.objects.filter(
             subscriber=subscriber.id,
-            target_user=target_user.id    
+            target_user=target_user.id
         ).exists()
 
         if request.method == 'POST':
@@ -46,7 +44,7 @@ class CustomUserViewSet(UserViewSet):
             subscription.save()
             serializer = SubscribeSerializer(
                 target_user,
-                data = request.data,
+                data=request.data,
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
@@ -76,4 +74,3 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return Response(serializer.data)
-

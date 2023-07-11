@@ -1,13 +1,9 @@
-from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import serializers
-from rest_framework.fields import IntegerField, SerializerMethodField
-from rest_framework.exceptions import ValidationError
 
 from recipes.models import Recipe
+from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from users.models import User, UserSubscribe
-from api.validators import validate_username
 
 
 class CustomUserSerializer(UserSerializer):
@@ -67,12 +63,12 @@ class SubscribeSerializer(CustomUserSerializer):
 
     def get_recipes(self, obj):
         from api.serializers import SubscribeFavoriteRecipeSerializer
-        
+
         recipes = Recipe.objects.filter(author=obj.id)
         serializer = SubscribeFavoriteRecipeSerializer(
             recipes,
-            many = True,
-            read_only = True
+            many=True,
+            read_only=True
         )
         return serializer.data
 

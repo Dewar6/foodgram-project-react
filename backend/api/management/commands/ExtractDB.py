@@ -5,11 +5,11 @@ from django.core.management import BaseCommand
 
 from recipes.models import Ingredient
 
-
 ERROR_MESSAGE = """
 Если в БД существуют данные, требуется удалить бд и заново провести
 миграции для создания пустой бд.
 """
+
 
 class Command(BaseCommand):
 
@@ -20,16 +20,20 @@ class Command(BaseCommand):
 
         try:
             self.load_data_from_csv(
-                'ingredients.csv', Ingredient, name='ингредиент', measurement_unit='мера'
+                'ingredients.csv',
+                Ingredient,
+                name='ингредиент',
+                measurement_unit='мера'
             )
             print('Импорт завершён')
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
     def load_data_from_csv(self, filename, model_class, **field_names):
         try:
             with open(
-                f'c:/Dev/foodgram/foodgram-project-react/data/{filename}', encoding='utf-8'
+                f'c:/Dev/foodgram/foodgram-project-react/data/{filename}',
+                encoding='utf-8'
             ) as file:
                 for row in csv.DictReader(file):
                     kwargs = {}

@@ -75,7 +75,7 @@ class Recipe(models.Model):
         help_text='Загрузите фотографии блюда',
         upload_to='images/',
         blank=False,
-        null=False,    
+        null=False,
     )
     text = models.TextField(
         verbose_name='Рецепт приготовления',
@@ -113,7 +113,7 @@ class Recipe(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'name'],
-                name = 'unique_recipe'
+                name='unique_recipe'
             )
         ]
 
@@ -141,7 +141,7 @@ class IngredientAmount(models.Model):
         on_delete=models.CASCADE,
         blank=False,
         null=False
-        
+
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
@@ -149,7 +149,10 @@ class IngredientAmount(models.Model):
     )
 
     def __str__(self):
-        return f'{self.ingredient} - {self.amount} {self.ingredient.measurement_unit}'
+        return (
+            f'{self.ingredient} - {self.amount} '
+            f'{self.ingredient.measurement_unit}'
+        )
 
 
 class TagRecipe(models.Model):
@@ -181,7 +184,7 @@ class FavoriteRecipe(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-                name = 'unique_favorite'
+                name='unique_favorite'
             )
         ]
 
@@ -203,12 +206,10 @@ class ShoppingCart(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
-                name = 'unique_ShoppingCart'
+                name='unique_ShoppingCart'
             )
         ]
 
     def __str__(self):
         return (f'рецепт {self.recipe} в списке покупок '
                 f'пользователя {self.user}')
-
-
