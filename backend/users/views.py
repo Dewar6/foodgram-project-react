@@ -12,7 +12,7 @@ from users.serializers import CustomUserSerializer, SubscribeSerializer
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [CreateAnyOtherAuthenticatedPermission,]
+    permission_classes = [CreateAnyOtherAuthenticatedPermission]
 
     @action(
         detail=True,

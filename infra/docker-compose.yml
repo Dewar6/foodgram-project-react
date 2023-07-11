@@ -1,12 +1,17 @@
 version: '3.3'
-services:
 
+volumes:
+  static:
+  media:
+
+services:
   frontend:
     build:
       context: ../frontend
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+
   nginx:
       image: nginx:1.19.3
       ports:
@@ -19,7 +24,3 @@ services:
         - media:/var/html/media
       extra_hosts:
         - "host.docker.internal:host-gateway"
-
-volumes:
-  static:
-  media:
