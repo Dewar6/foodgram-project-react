@@ -7,7 +7,7 @@ class AuthorAndStaffOrReadOnlyPermission(permissions.BasePermission):
         '''Аутентификация создателя объекта'''
         if request.method in permissions.SAFE_METHODS:
             return True
-        return ((request.user == obj.author) or request.user.is_superuser)
+        return request.user == obj.author or request.user.is_superuser
 
 
 class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
@@ -16,5 +16,5 @@ class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
             return True
         if view.action == 'me':
             return request.user.is_authenticated
-        elif request.method in permissions.SAFE_METHODS:
-            return True
+        return request.method in permissions.SAFE_METHODS
+

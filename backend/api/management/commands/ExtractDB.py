@@ -1,6 +1,8 @@
 import csv
+import os
 import traceback
 
+from django.conf import settings
 from django.core.management import BaseCommand
 
 from recipes.models import Ingredient
@@ -32,7 +34,7 @@ class Command(BaseCommand):
     def load_data_from_csv(self, filename, model_class, **field_names):
         try:
             with open(
-                f'c:/Dev/foodgram/foodgram-project-react/data/{filename}',
+                os.path.join(settings.BASE_DIR, '..', 'data', filename),
                 encoding='utf-8'
             ) as file:
                 for row in csv.DictReader(file):

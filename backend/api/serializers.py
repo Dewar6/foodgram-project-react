@@ -1,7 +1,5 @@
-import base64
-
 from django.core.exceptions import PermissionDenied
-from django.core.files.base import ContentFile
+
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
@@ -63,21 +61,8 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ImageField(serializers.Field):
-
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
-
-    def to_representation(self, value):
-        return value.url
-
-
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientSerializer(many=True)
     tags = TagSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -97,10 +82,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
-    def get_ingredients(self, obj):
-        ingredients = IngredientAmount.objects.filter(recipe=obj)
-        return IngredientAmountSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
@@ -147,13 +128,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         author = self.context['request'].user
         name = data.get('name')
-        amount = data['ingredients'][0]['amount']
+        ingredients_list = []
 
-        if amount < 1:
-            raise serializers.ValidationError(
-                {'amount':
-                 'Убедитесь, что это значение больше либо равно 1.'}
-            )
+        for index in range(len(data['ingredients'])):
+            amount = data['ingredients'][index]['amount']
+
+            if amount < 1:
+                raise serializers.ValidationError(
+                    {'amount':
+                    'Убедитесь, что это значение больше либо равно 1'}
+                )
+
+            if data['ingredients'][index]['id'] in ingredients_list:
+                raise serializers.ValidationError(
+                    {'error': 'Данный ингредиент уже добавлен'}
+                )
+            ingredients_list.append(data['ingredients'][index]['id'])
 
         if self.instance is not None:
             if self.instance.author != author:
@@ -165,15 +155,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                      'Рецепт с таким названием уже существует у вас'}
                 )
 
-        ingredients = self.initial_data.get('ingredients')
-        ingredient_objects = []
-        for ingredient in ingredients:
-            ingredient = get_object_or_404(Ingredient,
-                                           id=ingredient['id'])
-            ingredient_objects.append(ingredient)
-        data['ingredients'] = ingredients
         return data
 
+        
     @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
