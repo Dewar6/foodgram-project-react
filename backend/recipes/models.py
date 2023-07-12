@@ -1,5 +1,6 @@
-from api.validators import color_validator
 from django.db import models
+
+from api.validators import color_validator
 from users.models import User
 
 
@@ -122,7 +123,6 @@ class Recipe(models.Model):
 
     def get_favorite_count(self):
         favorite_count = FavoriteRecipe.objects.filter(recipe=self).count()
-        print(self)
         return favorite_count
     get_favorite_count.short_description = 'Число добавлений в избранное'
 
@@ -148,6 +148,14 @@ class IngredientAmount(models.Model):
         help_text='Укажите количество ингредиента',
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'],
+                name='unique_ingredient_amount'
+            )
+        ]
+
     def __str__(self):
         return (
             f'{self.ingredient} - {self.amount} '
@@ -166,6 +174,14 @@ class TagRecipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Рецепт'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tag', 'recipe'],
+                name='unique_tag_recipe'
+            )
+        ]
 
 
 class FavoriteRecipe(models.Model):

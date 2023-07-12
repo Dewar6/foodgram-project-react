@@ -1,9 +1,8 @@
 from django.core.exceptions import PermissionDenied
-
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 
 from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag, TagRecipe)
@@ -136,7 +135,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             if amount < 1:
                 raise serializers.ValidationError(
                     {'amount':
-                    'Убедитесь, что это значение больше либо равно 1'}
+                     'Убедитесь, что это значение больше либо равно 1'}
                 )
 
             if data['ingredients'][index]['id'] in ingredients_list:
@@ -157,7 +156,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
         return data
 
-        
+    def recipe_create_or_update(self, ingredients, tags, recipe):
+        ingredient_amount = [
+            IngredientAmount(
+                recipe=recipe,
+                ingredient_id=ingredient['id'],
+                amount=ingredient['amount']
+            )
+            for ingredient in ingredients
+        ]
+        IngredientAmount.objects.bulk_create(ingredient_amount)
+
+        for tag in tags:
+            TagRecipe.objects.create(recipe=recipe, tag=tag)
+
+        recipe.tags.set(tags)
+
     @transaction.atomic
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
@@ -168,20 +182,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            ingredient_obj = Ingredient.objects.get(pk=ingredient['id'])
-            ingredient_amount = IngredientAmount.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_obj,
-                amount=amount
-            )
-            ingredient_amount.save()
-
-        for tag in tags:
-            TagRecipe.objects.create(recipe=recipe, tag=tag)
-
-        recipe.tags.set(tags)
+        self.recipe_create_or_update(ingredients, tags, recipe)
         return recipe
 
     @transaction.atomic
@@ -192,21 +193,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
 
-        for ingredient in ingredients:
-            print(ingredient)
-            amount = ingredient['amount']
-            ingredient_obj = Ingredient.objects.get(pk=ingredient['id'])
-            ingredient_amount = IngredientAmount.objects.create(
-                recipe=instance,
-                ingredient=ingredient_obj,
-                amount=amount
-            )
-            ingredient_amount.save()
-
-        for tag in tags:
-            TagRecipe.objects.create(recipe=instance, tag=tag)
-
-        instance.tags.set(tags)
+        self.recipe_create_or_update(ingredients, tags, instance)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
@@ -228,28 +215,31 @@ class SubscribeFavoriteRecipeSerializer(serializers.ModelSerializer):
         )
 
 
-class ShoppingCartSerializer(serializers.Serializer):
-    image = serializers.SerializerMethodField()
-    cooking_time = serializers.SerializerMethodField()
+class SubscribeSerializer(CustomUserSerializer):
+    recipes_count = SerializerMethodField()
+    recipes = SubscribeFavoriteRecipeSerializer(
+        many=True,
+        source='get_user_recipes',
+        read_only=True
+    )
 
-    class Meta:
-        model = ShoppingCart
-        fields = (
-            'id',
-            'name',
-            'image',
-            'cooking_time',
+    class Meta(CustomUserSerializer.Meta):
+        fields = (CustomUserSerializer.Meta.fields
+                  + ('recipes', 'recipes_count',))
+
+        read_only_fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
         )
 
-    def get_image(self, obj):
-        recipe = obj.recipe
-        serializers = RecipeSerializer(recipe)
-        return serializers.data.get('image')
+    def get_user_recipes(self, obj):
+        return Recipe.objects.filter(author=obj)
 
-    def get_cooking_time(self, obj):
-        recipe = obj.recipe
-        serializers = RecipeSerializer(recipe)
-        return serializers.data.get('cooking_time')
+    def get_recipes_count(self, obj):
+        recipes = Recipe.objects.filter(author=obj.id)
+        return recipes.count()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

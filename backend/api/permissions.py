@@ -17,4 +17,3 @@ class CreateAnyOtherAuthenticatedPermission(permissions.BasePermission):
         if view.action == 'me':
             return request.user.is_authenticated
         return request.method in permissions.SAFE_METHODS
-

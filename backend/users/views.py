@@ -5,8 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.permissions import CreateAnyOtherAuthenticatedPermission
+from api.serializers import SubscribeSerializer
 from users.models import User, UserSubscribe
-from users.serializers import CustomUserSerializer, SubscribeSerializer
+from users.serializers import CustomUserSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -28,7 +29,7 @@ class CustomUserViewSet(UserViewSet):
         ).exists()
 
         if request.method == 'POST':
-            if subscribe_existence is True:
+            if subscribe_existence:
                 return Response(
                     {'errors': 'Вы уже подписаны на данного автора'},
                     status=400
@@ -52,8 +53,8 @@ class CustomUserViewSet(UserViewSet):
             serializer.save()
             return Response(serializer.data, status=201)
 
-        if request.method == 'DELETE':
-            if subscribe_existence is not True:
+        else:
+            if not subscribe_existence:
                 return Response(
                     {'errors': 'Вы не подписаны на данного автора'},
                     status=400

@@ -67,7 +67,12 @@ class UserSubscribe(models.Model):
     )
 
     class Meta:
-        unique_together = ['subscriber', 'target_user']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['subscriber', 'target_user'],
+                name='unique_subscribe'
+            )
+        ]
 
     def __str__(self):
         return f'{self.subscriber} подписан на {self.target_user}'

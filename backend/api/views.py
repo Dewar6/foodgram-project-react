@@ -38,46 +38,50 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeSerializer
         return RecipeCreateSerializer
 
-    @action(
-        detail=True,
-        methods=('POST', 'DELETE'),
-    )
-    def favorite(self, request, pk):
+    def favorite_shopping_cart_creator(self, model, request, pk):
         recipe = Recipe.objects.get(id=pk)
         user = request.user
-        favorite_exists = FavoriteRecipe.objects.filter(
+        objects_exists = model.objects.filter(
             user=user,
             recipe=recipe
         ).exists()
 
         if request.method == 'POST':
 
-            if favorite_exists:
+            if objects_exists:
                 return Response(
-                    {'errors': 'Данный рецепт у вас уже в избранном'},
+                    {'errors': 'Данный рецепт уже добавлен'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            FavoriteRecipe.objects.create(
+            model.objects.create(
                 user=user,
                 recipe=recipe
             )
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
+        else:
 
-            if not favorite_exists:
+            if not objects_exists:
                 return Response(
-                    {'errors': 'Данного рецепта нет у вас в избранном'},
+                    {'errors': 'Данного рецепта нет в списке'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            FavoriteRecipe.objects.filter(
+            model.objects.filter(
                 user=user,
                 recipe=recipe
             ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=('POST', 'DELETE'),
+    )
+    def favorite(self, request, pk):
+        return self.favorite_shopping_cart_creator(FavoriteRecipe, request,
+                                                   pk)
 
     @action(detail=False, methods=('GET',))
     def favorites(self, request):
@@ -91,36 +95,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         methods=('POST', 'DELETE')
     )
     def shopping_cart(self, request, pk):
-        recipe = Recipe.objects.get(id=pk)
-        user = request.user
-        shopping_cart_exists = ShoppingCart.objects.filter(
-            user=user,
-            recipe=recipe
-        ).exists()
-
-        if request.method == 'POST':
-
-            if shopping_cart_exists:
-                return Response('Данный рецепт уже в списке покупок',
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            ShoppingCart.objects.create(
-                user=user,
-                recipe=recipe
-            )
-            serializer = SubscribeFavoriteRecipeSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        if request.method == 'DELETE':
-
-            if not shopping_cart_exists:
-                return Response('Данного рецепта нет у вас в списке покупок')
-
-            ShoppingCart.objects.filter(
-                user=user,
-                recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.favorite_shopping_cart_creator(ShoppingCart, request, pk)
 
     @action(
         detail=False,
@@ -129,34 +104,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         user = request.user
         queryset = ShoppingCart.objects.filter(user=user)
+        recipe_ids = queryset.values_list('recipe_id', flat=True)
+        ingredients = IngredientAmount.objects.filter(recipe_id__in=recipe_ids)
         ingredients_result = []
 
-        for obj in queryset:
-            recipe = Recipe.objects.get(id=obj.recipe.id)
-            ingredients = IngredientAmount.objects.filter(recipe=recipe)
-            for ingredient in ingredients:
-                name = ingredient.ingredient.name
-                amount = ingredient.amount
-                measurement_unit = ingredient.ingredient.measurement_unit
-                if len(ingredients_result) == 0:
-                    ingredients_result.append([
-                        name,
-                        amount,
-                        measurement_unit
-                    ])
-                else:
-                    flag = False
-                    for objs in ingredients_result:
-                        if name == objs[0]:
-                            objs[1] += amount
-                            flag = True
-                            break
-                    if not flag:
-                        ingredients_result.append([
-                            name,
-                            amount,
-                            measurement_unit
-                        ])
+        for ingredient in ingredients:
+            name = ingredient.ingredient.name
+            amount = ingredient.amount
+            measurement_unit = ingredient.ingredient.measurement_unit
+
+            flag = False
+            for item in ingredients_result:
+                if name == item[0]:
+                    item[1] += amount
+                    flag = True
+                    break
+
+            if not flag:
+                ingredients_result.append([name, amount, measurement_unit])
 
         shopping_cart = 'Список покупок:\n'
         for item in ingredients_result:
