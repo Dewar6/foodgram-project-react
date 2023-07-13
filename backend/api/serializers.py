@@ -129,8 +129,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         name = data.get('name')
         ingredients_list = []
 
-        for index in range(len(data['ingredients'])):
-            amount = data['ingredients'][index]['amount']
+        for ingredient in data['ingredients']:
+            amount = ingredient['amount']
 
             if amount < 1:
                 raise serializers.ValidationError(
@@ -138,11 +138,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                      'Убедитесь, что это значение больше либо равно 1'}
                 )
 
-            if data['ingredients'][index]['id'] in ingredients_list:
+            if ingredient['id'] in ingredients_list:
                 raise serializers.ValidationError(
                     {'error': 'Данный ингредиент уже добавлен'}
                 )
-            ingredients_list.append(data['ingredients'][index]['id'])
+            ingredients_list.append(ingredient['id'])
 
         if self.instance is not None:
             if self.instance.author != author:
@@ -167,8 +167,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ]
         IngredientAmount.objects.bulk_create(ingredient_amount)
 
-        for tag in tags:
-            TagRecipe.objects.create(recipe=recipe, tag=tag)
+        tag_recipe = [
+            TagRecipe(recipe=recipe, tag=tag)
+            for tag in tags
+        ]
+        TagRecipe.objects.bulk_create(tag_recipe)
 
         recipe.tags.set(tags)
 
@@ -216,12 +219,8 @@ class SubscribeFavoriteRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(CustomUserSerializer):
-    recipes_count = SerializerMethodField()
-    recipes = SubscribeFavoriteRecipeSerializer(
-        many=True,
-        source='get_user_recipes',
-        read_only=True
-    )
+    recipes_count = SerializerMethodField(read_only=True)
+    recipes = SerializerMethodField(read_only=True)
 
     class Meta(CustomUserSerializer.Meta):
         fields = (CustomUserSerializer.Meta.fields
@@ -234,12 +233,22 @@ class SubscribeSerializer(CustomUserSerializer):
             'last_name',
         )
 
-    def get_user_recipes(self, obj):
-        return Recipe.objects.filter(author=obj)
-
     def get_recipes_count(self, obj):
         recipes = Recipe.objects.filter(author=obj.id)
         return recipes.count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj)
+        if limit:
+            recipes = recipes[: int(limit)]
+        serializer = SubscribeFavoriteRecipeSerializer(
+            recipes,
+            many=True,
+            read_only=True
+        )
+        return serializer.data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from api.permissions import CreateAnyOtherAuthenticatedPermission
 from api.serializers import SubscribeSerializer
 from users.models import User, UserSubscribe
+from users.pagination import CustomPagination
 from users.serializers import CustomUserSerializer
 
 
@@ -14,6 +15,7 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [CreateAnyOtherAuthenticatedPermission]
+    pagination_class = CustomPagination
 
     @action(
         detail=True,
@@ -69,14 +71,15 @@ class CustomUserViewSet(UserViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=(IsAuthenticated,)
+        permission_classes=(IsAuthenticated,),
     )
     def subscriptions(self, request):
         subscriber = request.user
         queryset = User.objects.filter(subscribers__subscriber=subscriber)
+        page = self.paginate_queryset(queryset)
         serializer = SubscribeSerializer(
-            queryset,
+            page,
             many=True,
             context={'request': request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)

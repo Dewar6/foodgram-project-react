@@ -43,7 +43,7 @@ class RecipeAdmin(admin.ModelAdmin):
     form = RecipeForm
 
     def display_tags(self, obj):
-        return ", ".join(tag['name'] for tag in obj.tags.values())
+        return ", ".join(tag['name'] for tag in obj.tags.values('name'))
     display_tags.short_description = 'Теги'
 
     def get_favorite_count(self, obj):
