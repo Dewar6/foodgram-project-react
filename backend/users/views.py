@@ -66,7 +66,11 @@ class CustomUserViewSet(UserViewSet):
             subscription.delete()
             return Response(status=204)
 
-    @action(detail=False, methods=['get'])
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=(IsAuthenticated,)
+    )
     def subscriptions(self, request):
         subscriber = request.user
         queryset = User.objects.filter(subscribers__subscriber=subscriber)
@@ -75,4 +79,6 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
+        for obj in queryset:
+            print(obj.username)
         return Response(serializer.data)
