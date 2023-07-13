@@ -79,6 +79,4 @@ class CustomUserViewSet(UserViewSet):
             many=True,
             context={'request': request}
         )
-        for obj in queryset:
-            print(obj.username)
         return Response(serializer.data)
