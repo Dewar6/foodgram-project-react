@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.http import HttpResponse
 from rest_framework import (status, viewsets)
 from rest_framework.decorators import action
@@ -61,19 +62,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = SubscribeFavoriteRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        else:
+        if not objects_exists:
+            return Response(
+                {'errors': 'Данного рецепта нет в списке'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-            if not objects_exists:
-                return Response(
-                    {'errors': 'Данного рецепта нет в списке'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            model.objects.filter(
-                user=user,
-                recipe=recipe
-            ).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        model.objects.filter(
+            user=user,
+            recipe=recipe
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
@@ -103,29 +102,17 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         user = request.user
-        queryset = ShoppingCart.objects.filter(user=user)
-        recipe_ids = queryset.values_list('recipe_id', flat=True)
-        ingredients = IngredientAmount.objects.filter(recipe_id__in=recipe_ids)
-        ingredients_result = []
-
-        for ingredient in ingredients:
-            name = ingredient.ingredient.name
-            amount = ingredient.amount
-            measurement_unit = ingredient.ingredient.measurement_unit
-
-            flag = False
-            for item in ingredients_result:
-                if name == item[0]:
-                    item[1] += amount
-                    flag = True
-                    break
-
-            if not flag:
-                ingredients_result.append([name, amount, measurement_unit])
-
-        shopping_cart = 'Список покупок:\n'
-        for item in ingredients_result:
-            shopping_cart += f'{item[0]} - {item[1]} {item[2]}\n'
+        recipe_ids = ShoppingCart.objects.filter(
+            user=user).values_list('recipe_id', flat=True)
+        ingredients = IngredientAmount.objects.filter(
+            recipe_id__in=recipe_ids
+        ).values_list(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+        shopping_cart = 'Список покупок:\n' 
+        for item in ingredients:
+            name, measurement_unit, amount = item
+            shopping_cart += f'{name} - {amount} {measurement_unit}\n'
         response = HttpResponse(shopping_cart, content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename=shopping_cart.txt')

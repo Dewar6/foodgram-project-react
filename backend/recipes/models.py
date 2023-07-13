@@ -60,6 +60,7 @@ class Recipe(models.Model):
         User,
         verbose_name='Автор рецепта',
         on_delete=models.CASCADE,
+        related_name='recipes',
         blank=False,
         null=False,
     )
@@ -141,7 +142,6 @@ class IngredientAmount(models.Model):
         on_delete=models.CASCADE,
         blank=False,
         null=False
-
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',

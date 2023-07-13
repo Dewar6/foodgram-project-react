@@ -29,7 +29,8 @@ class IngredientAmountSerializer(IngredientSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
-        source='ingredient.measurement_unit')
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = IngredientAmount
@@ -61,7 +62,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = IngredientSerializer(many=True)
+    ingredients = IngredientAmountSerializer(
+        many=True,
+        source='ingredientamount_set',
+        read_only=True,
+    )
     tags = TagSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField()
@@ -220,7 +225,12 @@ class SubscribeFavoriteRecipeSerializer(serializers.ModelSerializer):
 
 class SubscribeSerializer(CustomUserSerializer):
     recipes_count = SerializerMethodField(read_only=True)
-    recipes = SerializerMethodField(read_only=True)
+    recipes = SerializerMethodField()
+    # recipes = SubscribeFavoriteRecipeSerializer(
+    #     many=True,
+    #     read_only=True,
+    #     source='author.recipes'
+    # )
 
     class Meta(CustomUserSerializer.Meta):
         fields = (CustomUserSerializer.Meta.fields

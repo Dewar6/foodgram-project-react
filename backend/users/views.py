@@ -55,18 +55,18 @@ class CustomUserViewSet(UserViewSet):
             serializer.save()
             return Response(serializer.data, status=201)
 
-        else:
-            if not subscribe_existence:
-                return Response(
-                    {'errors': 'Вы не подписаны на данного автора'},
-                    status=400
-                )
-            subscription = UserSubscribe.objects.get(
-                subscriber=subscriber,
-                target_user=target_user
+        if not subscribe_existence:
+            return Response(
+                {'errors': 'Вы не подписаны на данного автора'},
+                status=400
             )
-            subscription.delete()
-            return Response(status=204)
+        subscription = UserSubscribe.objects.get(
+            subscriber=subscriber,
+            target_user=target_user
+        )
+        subscription.delete()
+        return Response(status=204)
+
 
     @action(
         detail=False,
