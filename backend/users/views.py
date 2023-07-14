@@ -6,6 +6,7 @@ from rest_framework.response import Response
 
 from api.permissions import CreateAnyOtherAuthenticatedPermission
 from api.serializers import SubscribeSerializer
+from recipes.models import Recipe
 from users.models import User, UserSubscribe
 from users.pagination import CustomPagination
 from users.serializers import CustomUserSerializer
@@ -66,7 +67,6 @@ class CustomUserViewSet(UserViewSet):
         )
         subscription.delete()
         return Response(status=204)
-
 
     @action(
         detail=False,

@@ -2,7 +2,6 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from rest_framework.fields import SerializerMethodField
 
 from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag, TagRecipe)
@@ -224,13 +223,8 @@ class SubscribeFavoriteRecipeSerializer(serializers.ModelSerializer):
 
 
 class SubscribeSerializer(CustomUserSerializer):
-    recipes_count = SerializerMethodField(read_only=True)
-    recipes = SerializerMethodField()
-    # recipes = SubscribeFavoriteRecipeSerializer(
-    #     many=True,
-    #     read_only=True,
-    #     source='author.recipes'
-    # )
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+    recipes = SubscribeFavoriteRecipeSerializer(many=True, read_only=True)
 
     class Meta(CustomUserSerializer.Meta):
         fields = (CustomUserSerializer.Meta.fields
@@ -246,19 +240,6 @@ class SubscribeSerializer(CustomUserSerializer):
     def get_recipes_count(self, obj):
         recipes = Recipe.objects.filter(author=obj.id)
         return recipes.count()
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(author=obj)
-        if limit:
-            recipes = recipes[: int(limit)]
-        serializer = SubscribeFavoriteRecipeSerializer(
-            recipes,
-            many=True,
-            read_only=True
-        )
-        return serializer.data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
