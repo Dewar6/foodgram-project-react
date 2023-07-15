@@ -108,11 +108,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe_id__in=recipe_ids
         ).values_list(
             'ingredient__name', 'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ).annotate(total_quantity=Sum('amount'))
         shopping_cart = 'Список покупок:\n'
         for item in ingredients:
-            name, measurement_unit, amount = item
-            shopping_cart += f'{name} - {amount} {measurement_unit}\n'
+            name, measurement_unit, total_quantity = item
+            shopping_cart += f'{name} - {total_quantity} {measurement_unit}\n'
         response = HttpResponse(shopping_cart, content_type='text/plain')
         response['Content-Disposition'] = (
             'attachment; filename=shopping_cart.txt')
