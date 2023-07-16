@@ -34,7 +34,7 @@ class Command(BaseCommand):
     def load_data_from_csv(self, filename, model_class, **field_names):
         try:
             with open(
-                os.path.join(settings.BASE_DIR, '..', 'data', filename),
+                os.path.join(settings.BASE_DIR, 'data', filename),
                 encoding='utf-8'
             ) as file:
                 for row in csv.DictReader(file):
