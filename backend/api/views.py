@@ -119,13 +119,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'attachment; filename=shopping_cart.txt')
         return response
 
-    @action(
-        detail=False,
-        methods=('GET',)
-    )
-    def cart(self, request):
-        print('test')
-        return 'тест'
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
