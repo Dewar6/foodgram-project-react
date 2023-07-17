@@ -13,13 +13,13 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              TagSerializer)
 from recipes.models import (FavoriteRecipe, Ingredient, IngredientAmount,
                             Recipe, ShoppingCart, Tag)
+from users.pagination import CustomPagination
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -28,6 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,
                           AuthorAndStaffOrReadOnlyPermission,)
     filterset_class = RecipesFilter
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -118,10 +119,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'attachment; filename=shopping_cart.txt')
         return response
 
+    @action(
+        detail=False,
+        methods=('GET',)
+    )
+    def cart(self, request):
+        print('test')
+        return 'тест'
 
 class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filterset_class = IngredientsFilter
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = None
