@@ -28,6 +28,8 @@ services:
     command: cp -r /app/build/. /frontend_static/ 
     volumes:
       - static:/frontend_static
+    depends_on:
+      - backend
 
   gateway:
     image: dewar6/foodgram_infra
@@ -40,4 +42,5 @@ services:
       - media:/media
     ports:
       - 9090:80
+
 
